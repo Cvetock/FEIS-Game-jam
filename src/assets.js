@@ -1,5 +1,5 @@
-# Загрузчик ассетов
-export const Assets = {
+// Загрузчик ассетов
+window.Assets = {
   images: {},
   sounds: {},
   toLoad: 0,
@@ -21,7 +21,6 @@ export const Assets = {
   },
 
   async load() {
-    // Пока нет ассетов — загрузка считается завершённой immediately
     if (this.onComplete) this.onComplete();
   }
 };

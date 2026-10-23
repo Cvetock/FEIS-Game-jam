@@ -3,19 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FEIS Game Jam — 2D Стратегия-Роуглайк</title>
+<title>ПОСЛЕДНИЙ ЧЕЛОВЕК</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #111; color: #eee; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-  canvas { border: 2px solid #444; background: #0b0c10; max-width: 100%; max-height: 100%; image-rendering: pixelated; }
-  #ui { position: absolute; top: 10px; left: 10px; font-size: 14px; pointer-events: none; text-shadow: 1px 1px 0 #000; }
-  #msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; text-align: center; pointer-events: none; }
+  body { background: #050505; color: #eee; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+  canvas { border: 1px solid #333; background: #0e0f13; max-width: 100%; max-height: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-radius: 4px; }
+  #debugBtn { position: absolute; top: 10px; right: 10px; padding: 6px 12px; background: #1f232c; color: #d6d9e0; border: 1px solid #2c313c; cursor: pointer; font-size: 13px; z-index: 10; border-radius: 4px; }
+  #debugBtn:hover { background: #2c313c; }
+  #debugPanel { position: absolute; top: 50px; right: 10px; width: 380px; max-height: 80vh; overflow: auto; background: rgba(15,17,21,0.95); color: #9cf; border: 1px solid #2c313c; padding: 10px; font-family: monospace; font-size: 11px; white-space: pre-wrap; z-index: 10; display: none; border-radius: 4px; }
+  #debugPanel.open { display: block; }
 </style>
 </head>
 <body>
-<div id="ui">FPS: <span id="fps">0</span> | Волна: <span id="wave">0</span> | Ресурсы: <span id="res">0</span></div>
-<div id="msg">Нажмите любую клавишу или кликните, чтобы начать</div>
-<canvas id="game" width="640" height="480"></canvas>
-<script type="module" src="src/main.js"></script>
+<canvas id="game"></canvas>
+<button id="debugBtn">Debug: agency</button>
+<pre id="debugPanel"></pre>
+<script src="src/utils.js"></script>
+<script src="src/content.js"></script>
+<script src="src/models.js"></script>
+<script src="src/assets.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/input.js"></script>
+<script src="src/renderer.js"></script>
+<script src="src/game.js"></script>
+<script src="src/main.js"></script>
 </body>
 </html>

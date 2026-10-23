@@ -1,14 +1,20 @@
-# Отрисовка: helper-функции и камера
-export const Renderer = {
+window.Renderer = {
   ctx: null,
 
-  init(ctx) { this.ctx = ctx; },
-
-  clear() {
-    const { ctx } = this;
-    ctx.fillStyle = '#0b0c10';
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  THEME: {
+    bg:       '#0e0f13',
+    panel:    '#171a21',
+    panelHi:  '#1f232c',
+    border:   '#2c313c',
+    text:     '#d6d9e0',
+    muted:    '#8b919e',
+    accent:   '#f5c542',
+    success:  '#4ade80',
+    danger:   '#ef4444',
+    select:   '#3b82f6'
   },
+
+  init(ctx) { this.ctx = ctx; },
 
   rect(x, y, w, h, color) {
     const { ctx } = this;
@@ -16,39 +22,49 @@ export const Renderer = {
     ctx.fillRect(x, y, w, h);
   },
 
-  rectStroke(x, y, w, h, color, lineWidth = 2) {
-    const { ctx } = this;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = lineWidth;
-    ctx.strokeRect(x, y, w, h);
-  },
-
-  circle(x, y, r, color) {
+  roundRect(x, y, w, h, r, color) {
     const { ctx } = this;
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
+    if (ctx.roundRect) {
+      ctx.roundRect(x, y, w, h, r);
+    } else {
+      ctx.rect(x, y, w, h); // Защита для старых браузеров
+    }
     ctx.fill();
   },
 
-  text(str, x, y, { color = '#eee', size = '16px', align = 'start', font = 'system-ui' } = {}) {
+  roundRectStroke(x, y, w, h, r, color, lw = 1) {
     const { ctx } = this;
-    ctx.fillStyle = color;
-    ctx.font = `${size} ${font}`;
-    ctx.textAlign = align;
-    ctx.fillText(str, x, y);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lw;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(x, y, w, h, r);
+    } else {
+      ctx.rect(x, y, w, h);
+    }
+    ctx.stroke();
   },
 
-  grid(step = 40, color = '#222') {
+  text(str, x, y, { color = '#d6d9e0', size = '16px', align = 'start', font = 'system-ui', baseline = 'alphabetic', weight = 'normal', style = 'normal' } = {}) {
     const { ctx } = this;
-    const { width, height } = ctx.canvas;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    for (let i = 0; i < width; i += step) {
-      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, height); ctx.stroke();
-    }
-    for (let i = 0; i < height; i += step) {
-      ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(width, i); ctx.stroke();
-    }
+    ctx.fillStyle = color;
+    // Если передан полный шрифт с размером, используем его. Иначе собираем из частей.
+    ctx.font = font.includes('px') ? font : `${style} ${weight} ${size} ${font}`;
+    ctx.textAlign = align;
+    ctx.textBaseline = baseline;
+    ctx.fillText(str, x, y);
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
+  },
+
+  gradientRect(x, y, w, h, colorTop, colorBottom) {
+    const { ctx } = this;
+    const grad = ctx.createLinearGradient(x, y, x, y + h);
+    grad.addColorStop(0, colorTop);
+    grad.addColorStop(1, colorBottom);
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y, w, h);
   }
 };
