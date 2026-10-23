@@ -1,25 +1,23 @@
-# Утилиты
-export const Utils = {
+// Утилиты
+window.Utils = {
+  _uid: 0,
+  uid() { return ++this._uid; },
+
   rand(min, max) { return Math.random() * (max - min) + min; },
   randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; },
+  chance(p = 0.5) { return Math.random() < p; },
 
-  vec2(x, y) { return { x, y }; },
-  dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); },
-
-  // AABB-коллизия
-  aabb(r1, r2) {
-    return r1.x < r2.x + r2.w &&
-           r1.x + r1.w > r2.x &&
-           r1.y < r2.y + r2.h &&
-           r1.y + r1.h > r2.y;
-  },
-
-  // Точка внутри прямоугольника
-  pointInRect(px, py, rx, ry, rw, rh) {
-    return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
+  pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; },
+  shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
   },
 
   clamp(v, min, max) { return Math.min(Math.max(v, min), max); },
-
-  lerp(a, b, t) { return a + (b - a) * t; }
+  lerp(a, b, t) { return a + (b - a) * t; },
+  round(v, n = 0) { const k = Math.pow(10, n); return Math.round(v * k) / k; }
 };
