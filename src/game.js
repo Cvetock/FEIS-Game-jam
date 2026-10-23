@@ -1,5 +1,4 @@
-# Игровой цикл
-export const Game = {
+window.Game = {
   canvas: null,
   ctx: null,
   width: 640,
@@ -7,16 +6,31 @@ export const Game = {
   lastTime: 0,
   deltaTime: 0,
   running: false,
-  state: 'menu', // menu | playing | paused | gameover
+  state: 'agency',
+  agency: null,
 
   init(canvasId) {
     this.canvas = document.getElementById(canvasId);
+    const dpr = window.devicePixelRatio || 1;
+    this.width = 640;
+    this.height = 480;
+
+    this.canvas.width = this.width * dpr;
+    this.canvas.height = this.height * dpr;
+    this.canvas.style.width = this.width + 'px';
+    this.canvas.style.height = this.height + 'px';
+
     this.ctx = this.canvas.getContext('2d');
-    this.width = this.canvas.width;
-    this.height = this.canvas.height;
+    this.ctx.scale(dpr, dpr);
+
     this.lastTime = performance.now();
     this.running = true;
-    this.loop();
+
+    if (window.Models) {
+      this.agency = window.Models.createAgency();
+    } else {
+      console.error("Models не загружены!");
+    }
   },
 
   loop(now) {
@@ -24,23 +38,12 @@ export const Game = {
     this.deltaTime = (now - this.lastTime) / 1000;
     this.lastTime = now;
 
-    if (this.state === 'playing') {
-      this.update(this.deltaTime);
-    }
+    this.update(this.deltaTime);
     this.render();
-
-    requestAnimationFrame((t) => this.loop(t));
   },
 
-  update(dt) {
-    // Переопределяется логикой игры
-  },
-
-  render() {
-    const { ctx, width, height } = this;
-    ctx.fillStyle = '#0b0c10';
-    ctx.fillRect(0, 0, width, height);
-  },
+  update(dt) {},
+  render() {},
 
   setState(state) {
     this.state = state;
