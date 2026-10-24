@@ -1,0 +1,66 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="gobBody" cx="40%" cy="40%" r="70%">
+      <stop offset="0%" style="stop-color:#1f2937"/>
+      <stop offset="50%" style="stop-color:#111827"/>
+      <stop offset="100%" style="stop-color:#0b0c10"/>
+    </radialGradient>
+    <linearGradient id="gobSkin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4b5563"/>
+      <stop offset="50%" style="stop-color:#374151"/>
+      <stop offset="100%" style="stop-color:#1f2937"/>
+    </linearGradient>
+    <radialGradient id="gobEye" cx="45%" cy="45%" r="60%">
+      <stop offset="0%" style="stop-color:#fca5a5"/>
+      <stop offset="100%" style="stop-color:#7f1d1d"/>
+    </radialGradient>
+    <filter id="gobShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+  <g filter="url(#gobShadow)">
+    <!-- Tattered deep cloak -->
+    <path d="M14 52 Q32 44 50 52 L50 64 Q32 58 14 64 Z" fill="#1a1a2e" opacity="0.95"/>
+    <path d="M18 50 Q32 42 46 50 L46 58 Q32 54 18 58 Z" fill="#111827" opacity="0.9"/>
+    <!-- Ragged cloak edges -->
+    <path d="M14 52 Q10 50 12 44 Q14 42 16 46 M32 52 Q28 50 30 44 Q32 42 34 46 M50 52 Q54 50 52 44 Q50 42 48 46" fill="none" stroke="#0a0a0f" stroke-width="1"/>
+    <!-- Body torso -->
+    <ellipse cx="32" cy="40" rx="14" ry="10" fill="url(#gobBody)" opacity="0.95"/>
+    <path d="M22 36 Q32 44 42 36 Q32 28 22 36 Z" fill="#111827" opacity="0.9"/>
+    <!-- Pale sickly skin head -->
+    <ellipse cx="32" cy="22" rx="12" ry="11" fill="url(#gobSkin)" opacity="0.95"/>
+    <path d="M22 16 Q32 10 42 16 Q32 22 22 16 Z" fill="#374151" opacity="0.9"/>
+    <!-- Deep eye sockets -->
+    <ellipse cx="25" cy="20" rx="3.5" ry="4" fill="#0a0a0f"/>
+    <ellipse cx="39" cy="20" rx="3.5" ry="4" fill="#0a0a0f"/>
+    <!-- Socket highlights -->
+    <ellipse cx="24" cy="19" rx="1" ry="1.5" fill="#374151" opacity="0.5"/>
+    <ellipse cx="38" cy="19" rx="1" ry="1.5" fill="#374151" opacity="0.5"/>
+    <!-- Glowing red eyes -->
+    <circle cx="25" cy="20" r="1.5" fill="url(#gobEye)"/>
+    <circle cx="39" cy="20" r="1.5" fill="url(#gobEye)"/>
+    <circle cx="25" cy="19.5" r="0.6" fill="#fca5a5"/>
+    <circle cx="39" cy="19.5" r="0.6" fill="#fca5a5"/>
+    <!-- Nose -->
+    <path d="M30 24 L32 28 L34 24" fill="#1f2937" opacity="0.8"/>
+    <path d="M31 25 L33 25" stroke="#111827" stroke-width="0.5"/>
+    <!-- Jagged bloody mouth -->
+    <path d="M24 30 Q32 36 40 30" stroke="#7f1d1d" stroke-width="1.5" fill="none"/>
+    <path d="M27 30 L27 34" stroke="#ef4444" stroke-width="0.8"/>
+    <path d="M29 30 L29 34" stroke="#ef4444" stroke-width="0.8"/>
+    <path d="M35 30 L35 34" stroke="#ef4444" stroke-width="0.8"/>
+    <path d="M37 30 L37 34" stroke="#ef4444" stroke-width="0.8"/>
+    <!-- Pointed ears -->
+    <path d="M12 20 Q6 12 14 6 Q20 14 22 22" fill="url(#gobSkin)" opacity="0.95"/>
+    <path d="M14 20 Q10 14 12 8 Q18 14 20 20" fill="#1f2937" opacity="0.9"/>
+    <path d="M52 20 Q58 12 50 6 Q44 14 42 22" fill="url(#gobSkin)" opacity="0.95"/>
+    <path d="M50 20 Q54 14 52 8 Q46 14 44 20" fill="#1f2937" opacity="0.9"/>
+    <!-- Ragged hair patches -->
+    <path d="M18 14 Q24 4 32 8 Q40 4 46 14 Q44 20 32 18 Q20 20 18 14" fill="#111827" opacity="0.9"/>
+    <!-- Blood stain on cloak -->
+    <path d="M28 46 Q34 48 38 54 Q34 52 28 46" fill="#7f1d1d" opacity="0.8"/>
+    <path d="M30 48 Q36 50 40 56 Q36 54 30 48" fill="#7f1d1d" opacity="0.7"/>
+    <!-- Glow behind -->
+    <ellipse cx="32" cy="30" rx="24" ry="20" fill="url(#gobEye)"/>
+  </g>
+</svg>
