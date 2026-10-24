@@ -7,13 +7,11 @@ window.Input = {
     window.addEventListener('keydown', (e) => this.keys.add(e.code));
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
 
-    // Пересчет координат с учетом масштабирования (HiDPI)
+    // Пересчет координат: CSS-пиксели → логические 640×480 (с учётом zoom и HiDPI)
     const getPos = (e) => {
       const rect = element.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-
-      const logicalWidth = element.width / dpr;
-      const logicalHeight = element.height / dpr;
+      const logicalWidth = element._logicalW || (element.width / (window.devicePixelRatio || 1));
+      const logicalHeight = element._logicalH || (element.height / (window.devicePixelRatio || 1));
 
       return {
         x: (e.clientX - rect.left) * (logicalWidth / rect.width),

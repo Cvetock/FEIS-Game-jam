@@ -13,7 +13,7 @@
   const TOP_FULL = 108;
   const TOP_MINI = 26;
   const NAV_Y = 428, NAV_H = 44;
-  const DAY_Y = 378, DAY_H = 36;
+  const DAY_Y = 376, DAY_H = 44;
   const SLOTS = 6;
 
   const QUEST_ART = {
@@ -578,20 +578,18 @@
   function drawBottom(a) {
     Renderer.note(10, DAY_Y, 158, DAY_H, { pin: false });
     Renderer.ink('ПОДСКАЗКА', 20, DAY_Y + 12, { font: 'bold 8px Georgia' });
-    Renderer.wrapText(nextStepHint(a), 138, '8px Georgia').slice(0, 2).forEach(function (line, i) {
-      Renderer.text(line, 20, DAY_Y + 24 + i * 9, { color: T.inkSoft, font: '8px Georgia' });
-    });
+    Renderer.text(nextStepHint(a), 20, DAY_Y + 27, { color: T.inkSoft, font: '8.5px Georgia' });
 
     const lastDay = a.day >= a.maxDays;
     button(178, DAY_Y, 266, DAY_H,
       (lastDay ? 'ФИНАЛЬНЫЙ ТЕНДЕР' : 'ЗАКОНЧИТЬ ДЕНЬ') + ' · ' + a.day + '/' + a.maxDays,
-      function () { setState('endday'); }, { font: 'bold 11px Georgia' });
+      function () { setState('endday'); }, { font: 'bold 12px Georgia' });
 
     Renderer.note(452, DAY_Y, 178, DAY_H, { pin: false });
     Renderer.ink('СВОБОДНЫ: ' + a.monsters.filter(function (m) { return m.status === 'idle'; }).length +
-      ' · В СУМКЕ: ' + a.inventory.length, 462, DAY_Y + 13, { font: 'bold 8px Georgia' });
+      ' · В СУМКЕ: ' + a.inventory.length, 462, DAY_Y + 14, { font: 'bold 8px Georgia' });
     Renderer.text('Угроза ' + Models.threatLabel(a.threat) + ' · перехват ' +
-      Math.round(Models.interceptChance(a) * 100) + '%', 462, DAY_Y + 26,
+      Math.round(Models.interceptChance(a) * 100) + '%', 462, DAY_Y + 28,
       { color: T.inkSoft, font: '7.5px Georgia' });
 
     const tabs = [
@@ -629,12 +627,12 @@
 
   function nextStepHint(a) {
     if (a.interviewsLeft > 0 && a.monsters.length < Models.rosterCap(a) && a.candidates.length) {
-      return 'Наймите монстра: собеседование бесплатное, но его всего три.';
+      return 'Наймите монстра';
     }
     if (a.quests.some(function (q) { return !q.intercepted; })) {
-      return 'Отправьте свободного монстра на заказ — по одному заданию в день.';
+      return 'Отправьте на заказ';
     }
-    return 'Все заказы отработаны. Закончите день, чтобы получить золото.';
+    return 'Завершите день';
   }
 
   // ── Экран агентства ──────────────────────────────────────────────────────
