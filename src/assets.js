@@ -35,8 +35,8 @@ window.Assets = {
     if (this._promise) return this._promise;
 
     const manifest = [
-      // Фоны
-      ['bg_agency',   'assets/art/backgrounds/office.png'],
+      // Фоны (SVG — векторные, масштабируются без потерь при любом размере окна)
+      ['bg_agency',   'assets/art/backgrounds/agency_office.svg'],
       ['bg_tender',   'assets/art/backgrounds/tender_room.svg'],
       ['bg_cover',    'assets/art/backgrounds/cover_itchio.svg'],
 
