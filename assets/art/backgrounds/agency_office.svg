@@ -1,0 +1,291 @@
+<svg width="640" height="480" viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wallGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1620"/>
+      <stop offset="50%" style="stop-color:#0d0a12"/>
+      <stop offset="100%" style="stop-color:#060508"/>
+    </linearGradient>
+    <linearGradient id="stoneGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d2530"/>
+      <stop offset="100%" style="stop-color:#1a1520"/>
+    </linearGradient>
+    <linearGradient id="woodDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3d2a1f"/>
+      <stop offset="100%" style="stop-color:#1f150f"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24"/>
+      <stop offset="100%" style="stop-color:#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="bloodGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#dc2626"/>
+      <stop offset="100%" style="stop-color:#7f1d1d"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+    <filter id="glowGold" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#fbbf24" flood-opacity="0.3"/>
+    </filter>
+    <filter id="glowBlood" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#dc2626" flood-opacity="0.3"/>
+    </filter>
+    <filter id="glowPurple" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#a855f7" flood-opacity="0.3"/>
+    </filter>
+    <pattern id="crackPattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+      <path d="M50 0 Q55 20 50 40 Q45 60 50 80 Q55 90 50 100" stroke="#1a1018" stroke-width="0.5" fill="none" opacity="0.3"/>
+      <path d="M0 30 Q20 35 40 30 Q60 25 80 30 Q90 35 100 30" stroke="#1a1018" stroke-width="0.5" fill="none" opacity="0.3"/>
+    </pattern>
+  </defs>
+
+  <!-- Background wall with cracks -->
+  <rect width="640" height="480" fill="url(#wallGrad)"/>
+  <rect width="640" height="480" fill="url(#crackPattern)" opacity="0.4"/>
+
+  <!-- Gothic arched window with red sky -->
+  <g transform="translate(440, 15)" filter="url(#shadow)">
+    <!-- Window frame -->
+    <path d="M0 0 L0 140 Q0 155 15 155 L145 155 Q160 155 160 140 L160 0 Q160 -15 145 -15 L15 -15 Q0 -15 0 0" fill="#0d0a12" stroke="#3d2a1f" stroke-width="3"/>
+    <!-- Inner arch -->
+    <path d="M8 8 L8 125 Q8 135 18 135 L142 135 Q152 135 152 125 L152 8 Q152 -2 142 -2 L18 -2 Q8 -2 8 8" fill="#060508"/>
+    <!-- Red sky view -->
+    <ellipse cx="80" cy="70" rx="55" ry="40" fill="#7f1d1d" opacity="0.6"/>
+    <ellipse cx="80" cy="65" rx="45" ry="30" fill="#dc2626" opacity="0.4"/>
+    <!-- Flying bats -->
+    <g fill="#1a1018" opacity="0.8">
+      <path d="M40 40 Q35 35 30 40 Q25 35 20 40" stroke="#1a1018" stroke-width="1.5" fill="none"/>
+      <path d="M100 50 Q95 45 90 50 Q85 45 80 50" stroke="#1a1018" stroke-width="1.5" fill="none"/>
+      <path d="M60 30 Q55 25 50 30 Q45 25 40 30" stroke="#1a1018" stroke-width="1.5" fill="none"/>
+      <path d="M120 60 Q115 55 110 60 Q105 55 100 60" stroke="#1a1018" stroke-width="1.5" fill="none"/>
+    </g>
+    <!-- Window bars -->
+    <g stroke="#3d2a1f" stroke-width="2">
+      <line x1="80" y1="8" x2="80" y2="135"/>
+      <line x1="30" y1="30" x2="130" y2="30"/>
+      <line x1="30" y1="70" x2="130" y2="70"/>
+      <line x1="30" y1="110" x2="130" y2="110"/>
+    </g>
+  </g>
+
+  <!-- Stone archway entrance (left) -->
+  <g transform="translate(15, 80)" filter="url(#shadow)">
+    <path d="M0 0 L0 300 Q0 320 20 320 L100 320 Q120 320 120 300 L120 0 Q120 -20 100 -20 L20 -20 Q0 -20 0 0" fill="url(#stoneGrad)" stroke="#1a1520" stroke-width="2"/>
+    <path d="M10 10 L10 280 Q10 295 25 295 L95 295 Q110 295 110 280 L110 10 Q110 -5 95 -5 L25 -5 Q10 -5 10 10" fill="#0a080d"/>
+    <!-- Gargoyle on top -->
+    <g transform="translate(60, -30)">
+      <ellipse cx="0" cy="0" rx="18" ry="14" fill="#1a1520"/>
+      <ellipse cx="-10" cy="-5" rx="4" ry="5" fill="#dc2626"/>
+      <ellipse cx="10" cy="-5" rx="4" ry="5" fill="#dc2626"/>
+      <path d="M-12 8 Q0 15 12 8" stroke="#dc2626" stroke-width="2" fill="none"/>
+    </g>
+  </g>
+
+  <!-- Bookshelf with dossiers (left wall) -->
+  <g transform="translate(150, 60)" filter="url(#shadow)">
+    <rect x="0" y="0" width="160" height="340" rx="4" fill="url(#woodDark)" stroke="#2d1f14" stroke-width="2"/>
+    <!-- Shelves -->
+    <g stroke="#2d1f14" stroke-width="1">
+      <line x1="0" y1="60" x2="160" y2="60"/>
+      <line x1="0" y1="130" x2="160" y2="130"/>
+      <line x1="0" y1="200" x2="160" y2="200"/>
+      <line x1="0" y1="270" x2="160" y2="270"/>
+    </g>
+    <!-- Dossiers -->
+    <g fill="#fef3c7" opacity="0.9" filter="url(#shadow)">
+      <rect x="10" y="15" width="35" height="40" rx="1" transform="rotate(-3 27.5 35)"/>
+      <rect x="55" y="18" width="32" height="38" rx="1" transform="rotate(2 71 37)"/>
+      <rect x="100" y="12" width="38" height="42" rx="1" transform="rotate(-4 119 33)"/>
+      <rect x="15" y="75" width="33" height="36" rx="1" transform="rotate(3 31.5 93)"/>
+      <rect x="60" y="78" width="35" height="40" rx="1" transform="rotate(-2 77.5 98)"/>
+      <rect x="105" y="72" width="30" height="38" rx="1" transform="rotate(4 120 91)"/>
+      <rect x="12" y="145" width="36" height="38" rx="1" transform="rotate(-5 30 164)"/>
+      <rect x="58" y="148" width="32" height="36" rx="1" transform="rotate(1 74 166)"/>
+      <rect x="102" y="142" width="34" height="40" rx="1" transform="rotate(-3 119 162)"/>
+      <rect x="10" y="215" width="33" height="38" rx="1" transform="rotate(2 26.5 234)"/>
+      <rect x="55" y="218" width="35" height="36" rx="1" transform="rotate(-4 72.5 236)"/>
+      <rect x="100" y="212" width="32" height="42" rx="1" transform="rotate(3 116 233)"/>
+      <rect x="15" y="285" width="34" height="35" rx="1" transform="rotate(-2 32 302)"/>
+      <rect x="62" y="288" width="30" height="38" rx="1" transform="rotate(4 77 307)"/>
+    </g>
+    <!-- Blood stains on some dossiers -->
+    <g fill="#7f1d1d" opacity="0.4">
+      <ellipse cx="85" cy="25" rx="8" ry="5" transform="rotate(-4 85 25)"/>
+      <ellipse cx="120" cy="155" rx="6" ry="4" transform="rotate(2 120 155)"/>
+    </g>
+  </g>
+
+  <!-- Main desk (center-bottom) -->
+  <g transform="translate(200, 260)" filter="url(#shadow)">
+    <!-- Desk body -->
+    <path d="M0 0 L0 180 L300 180 L300 0 Q310 0 310 -10 L310 -20 Q310 -30 300 -30 L0 -30 Q-10 -30 -10 -20 L-10 0 Q-10 10 0 0" fill="url(#woodDark)"/>
+    <!-- Desk surface -->
+    <path d="M10 -25 L10 -15 L290 -15 L290 -25 Q300 -25 300 -35 L300 -45 Q300 -55 290 -55 L10 -55 Q0 -55 0 -45 L0 -35 Q0 -25 10 -25" fill="#1f150f"/>
+    <!-- Carved details -->
+    <g stroke="#2d1f14" stroke-width="1.5" fill="none">
+      <path d="M30 -20 Q40 -30 50 -20"/>
+      <path d="M100 -20 Q110 -30 120 -20"/>
+      <path d="M170 -20 Q180 -30 190 -20"/>
+      <path d="M240 -20 Q250 -30 260 -20"/>
+    </g>
+    <!-- Papers on desk -->
+    <g fill="#fef3c7" filter="url(#shadow)">
+      <rect x="20" y="-15" width="70" height="85" rx="1" transform="rotate(-4 55 27.5)"/>
+      <rect x="100" y="-10" width="75" height="80" rx="1" transform="rotate(2 137.5 30)"/>
+      <rect x="185" y="-5" width="65" height="70" rx="1" transform="rotate(-3 217.5 30)"/>
+    </g>
+    <!-- Quill and inkwell -->
+    <path d="M270 -10 L250 -40 Q240 -50 235 -55 Q230 -60 220 -62" stroke="#f1f5f9" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="275" cy="0" rx="10" ry="7" fill="#0a080d" stroke="#3d2a1f" stroke-width="1.5"/>
+    <ellipse cx="275" cy="-2" rx="6" ry="3" fill="#1a1018"/>
+    <!-- Ink splash -->
+    <g fill="#1a1018" opacity="0.6">
+      <ellipse cx="260" cy="10" rx="3" ry="2"/>
+      <ellipse cx="280" cy="8" rx="2" ry="2"/>
+      <ellipse cx="265" cy="18" rx="2" ry="1"/>
+    </g>
+    <!-- Seal stamp -->
+    <g transform="translate(220, 60)">
+      <circle cx="0" cy="0" r="18" fill="#dc2626" opacity="0.3"/>
+      <circle cx="0" cy="0" r="12" fill="#7f1d1d" opacity="0.5"/>
+      <text x="0" y="4" text-anchor="middle" font-size="8" fill="#fbbf24" font-weight="bold" font-family="monospace">АГЕНТСТВО</text>
+    </g>
+  </g>
+
+  <!-- Job board (right side) -->
+  <g transform="translate(520, 60)" filter="url(#shadow)">
+    <rect x="0" y="0" width="100" height="360" rx="4" fill="#1f150f" stroke="#3d2a1f" stroke-width="3"/>
+    <rect x="5" y="5" width="90" height="350" fill="#0d0a12"/>
+    <!-- Board header -->
+    <text x="50" y="30" text-anchor="middle" font-size="13" fill="url(#goldGrad)" font-weight="bold" font-family="monospace" filter="url(#glowGold)">ЗАКАЗЫ</text>
+    <line x1="10" y1="38" x2="90" y2="38" stroke="#3d2a1f" stroke-width="2"/>
+    <!-- Job cards -->
+    <g>
+      <!-- Farm -->
+      <g transform="translate(10, 50)">
+        <rect x="0" y="0" width="80" height="55" rx="3" fill="#2d1f14" stroke="#4ade80" stroke-width="1.5" filter="url(#glowGold)"/>
+        <text x="40" y="18" text-anchor="middle" font-size="9" fill="#4ade80" font-family="monospace" font-weight="bold">ФЕРМА</text>
+        <text x="40" y="32" text-anchor="middle" font-size="8" fill="#f1f5f9" font-family="monospace">150💰</text>
+        <text x="40" y="44" text-anchor="middle" font-size="7" fill="#fbbf24" font-family="monospace">★★☆☆☆</text>
+      </g>
+      <!-- Caravan -->
+      <g transform="translate(10, 115)">
+        <rect x="0" y="0" width="80" height="55" rx="3" fill="#2d1f14" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="40" y="18" text-anchor="middle" font-size="9" fill="#fbbf24" font-family="monospace" font-weight="bold">КАРАВАН</text>
+        <text x="40" y="32" text-anchor="middle" font-size="8" fill="#f1f5f9" font-family="monospace">200💰</text>
+        <text x="40" y="44" text-anchor="middle" font-size="7" fill="#fbbf24" font-family="monospace">★★★☆☆</text>
+      </g>
+      <!-- Caves (intercepted) -->
+      <g transform="translate(10, 180)" opacity="0.5">
+        <rect x="0" y="0" width="80" height="55" rx="3" fill="#2d1f14" stroke="#64748b" stroke-width="1.5"/>
+        <rect x="0" y="0" width="80" height="55" rx="3" fill="#64748b" opacity="0.6"/>
+        <line x1="0" y1="0" x2="80" y2="55" stroke="#f87171" stroke-width="2.5"/>
+        <line x1="80" y1="0" x2="0" y2="55" stroke="#f87171" stroke-width="2.5"/>
+        <text x="40" y="18" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="monospace">ПЕЩЕРЫ</text>
+        <text x="40" y="32" text-anchor="middle" font-size="8" fill="#94a3b8" font-family="monospace">ПЕРЕХВАЧЕНО</text>
+      </g>
+      <!-- Ruins -->
+      <g transform="translate(10, 245)">
+        <rect x="0" y="0" width="80" height="55" rx="3" fill="#2d1f14" stroke="#a855f7" stroke-width="1.5" filter="url(#glowPurple)"/>
+        <text x="40" y="18" text-anchor="middle" font-size="9" fill="#a855f7" font-family="monospace" font-weight="bold">РУИНЫ</text>
+        <text x="40" y="32" text-anchor="middle" font-size="8" fill="#f1f5f9" font-family="monospace">300💰</text>
+        <text x="40" y="44" text-anchor="middle" font-size="7" fill="#fbbf24" font-family="monospace">★★★★☆</text>
+      </g>
+      <!-- Citadel -->
+      <g transform="translate(10, 310)">
+        <rect x="0" y="0" width="80" height="55" rx="3" fill="#2d1f14" stroke="#dc2626" stroke-width="1.5" filter="url(#glowBlood)"/>
+        <text x="40" y="18" text-anchor="middle" font-size="9" fill="#dc2626" font-family="monospace" font-weight="bold">ЦИТАДЕЛЬ</text>
+        <text x="40" y="32" text-anchor="middle" font-size="8" fill="#f1f5f9" font-family="monospace">500💰</text>
+        <text x="40" y="44" text-anchor="middle" font-size="7" fill="#f87171" font-family="monospace">★★★★★</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Upgrade indicators (bottom) -->
+  <g font-family="monospace" font-size="9" fill="#64748b">
+    <g transform="translate(80, 455)">
+      <circle cx="0" cy="0" r="14" fill="#1a1520" stroke="#3d2a1f" stroke-width="1"/>
+      <text x="0" y="3" text-anchor="middle" font-size="8" fill="#fbbf24">🏠</text>
+      <text x="0" y="25" text-anchor="middle" fill="#4ade80">СТОЙЛА</text>
+    </g>
+    <g transform="translate(190, 455)">
+      <circle cx="0" cy="0" r="14" fill="#1a1520" stroke="#3d2a1f" stroke-width="1"/>
+      <text x="0" y="3" text-anchor="middle" font-size="8" fill="#fbbf24">⚒️</text>
+      <text x="0" y="25" text-anchor="middle" fill="#fbbf24">КУЗНЯ</text>
+    </g>
+    <g transform="translate(300, 455)">
+      <circle cx="0" cy="0" r="14" fill="#1a1520" stroke="#3d2a1f" stroke-width="1"/>
+      <text x="0" y="3" text-anchor="middle" font-size="8" fill="#a855f7">🔮</text>
+      <text x="0" y="25" text-anchor="middle" fill="#a855f7">ШКОЛА ЛЖИ</text>
+    </g>
+    <g transform="translate(410, 455)">
+      <circle cx="0" cy="0" r="14" fill="#1a1520" stroke="#3d2a1f" stroke-width="1"/>
+      <text x="0" y="3" text-anchor="middle" font-size="8" fill="#dc2626">⚰️</text>
+      <text x="0" y="25" text-anchor="middle" fill="#dc2626">КРИПТА</text>
+    </g>
+    <g transform="translate(520, 455)">
+      <circle cx="0" cy="0" r="14" fill="#1a1520" stroke="#3d2a1f" stroke-width="1"/>
+      <text x="0" y="3" text-anchor="middle" font-size="8" fill="#4ade80">👁️</text>
+      <text x="0" y="25" text-anchor="middle" fill="#4ade80">РАЗВЕДКА</text>
+    </g>
+  </g>
+
+  <!-- Threat indicator bar (top) -->
+  <g transform="translate(80, 20)">
+    <rect x="0" y="0" width="480" height="14" rx="7" fill="#0d0a12" stroke="#3d2a1f" stroke-width="1.5"/>
+    <rect x="2" y="2" width="48" height="10" rx="5" fill="#4ade80" id="threatBar" filter="url(#glowGold)"/>
+    <text x="480" y="11" text-anchor="end" font-size="10" fill="#fbbf24" font-weight="bold" font-family="monospace">УГРОЗА: 10%</text>
+  </g>
+
+  <!-- Candelabra on desk -->
+  <g transform="translate(340, 200)" filter="url(#glowGold)">
+    <rect x="-4" y="-60" width="8" height="60" fill="#2d1f14"/>
+    <g fill="#fbbf24">
+      <ellipse cx="0" cy="-65" rx="6" ry="10"/>
+      <ellipse cx="0" cy="-63" rx="3" ry="6" fill="#fff" opacity="0.8"/>
+    </g>
+    <g fill="#fbbf24" transform="translate(-25, -55)">
+      <ellipse cx="0" cy="0" rx="5" ry="9"/>
+      <ellipse cx="0" cy="2" rx="2.5" ry="5" fill="#fff" opacity="0.8"/>
+    </g>
+    <g fill="#fbbf24" transform="translate(25, -55)">
+      <ellipse cx="0" cy="0" rx="5" ry="9"/>
+      <ellipse cx="0" cy="2" rx="2.5" ry="5" fill="#fff" opacity="0.8"/>
+    </g>
+  </g>
+
+  <!-- Skull on shelf -->
+  <g transform="translate(220, 120)" filter="url(#shadow)">
+    <ellipse cx="0" cy="0" rx="16" ry="14" fill="#f1f5f9" opacity="0.9"/>
+    <ellipse cx="-6" cy="-3" rx="5" ry="6" fill="#0a080d"/>
+    <ellipse cx="6" cy="-3" rx="5" ry="6" fill="#0a080d"/>
+    <path d="M-8 6 Q0 10 8 6" stroke="#0a080d" stroke-width="1.5" fill="none"/>
+    <g stroke="#0a080d" stroke-width="1">
+      <line x1="-4" y1="10" x2="-4" y2="13"/>
+      <line x1="0" y1="10" x2="0" y2="13"/>
+      <line x1="4" y1="10" x2="4" y2="13"/>
+    </g>
+  </g>
+
+  <!-- Blood candles on window sill -->
+  <g transform="translate(440, 135)" fill="#7f1d1d">
+    <rect x="10" y="-25" width="6" height="25" rx="1"/>
+    <ellipse cx="13" cy="-28" rx="4" ry="5" fill="#dc2626"/>
+    <ellipse cx="13" cy="-26" rx="2" ry="3" fill="#f87171"/>
+    <rect x="40" y="-25" width="6" height="25" rx="1"/>
+    <ellipse cx="43" cy="-28" rx="4" ry="5" fill="#dc2626"/>
+    <ellipse cx="43" cy="-26" rx="2" ry="3" fill="#f87171"/>
+    <rect x="70" y="-25" width="6" height="25" rx="1"/>
+    <ellipse cx="73" cy="-28" rx="4" ry="5" fill="#dc2626"/>
+    <ellipse cx="73" cy="-26" rx="2" ry="3" fill="#f87171"/>
+    <rect x="100" y="-25" width="6" height="25" rx="1"/>
+    <ellipse cx="103" cy="-28" rx="4" ry="5" fill="#dc2626"/>
+    <ellipse cx="103" cy="-26" rx="2" ry="3" fill="#f87171"/>
+  </g>
+
+  <!-- Agency sign -->
+  <g transform="translate(320, 45)" filter="url(#glowGold)">
+    <text x="0" y="0" text-anchor="middle" font-size="18" fill="url(#goldGrad)" font-weight="bold" font-family="monospace" letter-spacing="2">ПОСЛЕДНЕЕ АГЕНТСТВО</text>
+    <text x="0" y="22" text-anchor="middle" font-size="9" fill="#fbbf24" font-family="monospace" letter-spacing="4">НАЁМ МОНСТРОВ • ТЕНДЕРЫ • РАЗВЕДКА</text>
+  </g>
+</svg>

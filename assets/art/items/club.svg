@@ -1,0 +1,52 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="clubGlow" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#dc2626;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#7f1d1d;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="64" height="64" fill="#0b0c10"/>
+  <!-- Splintered handle -->
+  <rect x="29" y="20" width="6" height="32" rx="1" fill="#374151" opacity="0.95"/>
+  <g fill="#1f2937">
+    <path d="M29 20 L27 16 Q32 18 31 22"/>
+    <path d="M35 20 L33 16 Q32 18 33 22"/>
+  </g>
+  <!-- Handle cracks -->
+  <g stroke="#0a0a0f" stroke-width="0.5">
+    <path d="M29 22 L35 26 M31 28 L33 32 M29 36 L35 40"/>
+  </g>
+  <!-- Club head -->
+  <ellipse cx="32" cy="54" rx="12" ry="6" fill="#4b5563" opacity="0.95"/>
+  <ellipse cx="32" cy="52" rx="10" ry="4" fill="#374151"/>
+  <!-- Head cracks -->
+  <g stroke="#1f2937" stroke-width="0.5" fill="none">
+    <path d="M24 50 Q28 48 32 52 Q36 48 40 50"/>
+    <path d="M26 54 Q32 52 38 54"/>
+    <path d="M24 58 Q28 56 32 58 Q36 56 40 58"/>
+  </g>
+  <!-- Metal bands (rusted) -->
+  <ellipse cx="32" cy="46" rx="11" ry="1.5" fill="#92400e" opacity="0.8"/>
+  <ellipse cx="32" cy="58" rx="11" ry="1.5" fill="#92400e" opacity="0.8"/>
+  <!-- Band rivets -->
+  <g fill="#7f1d1d">
+    <circle cx="24" cy="46" r="1"/>
+    <circle cx="40" cy="46" r="1"/>
+    <circle cx="24" cy="58" r="1"/>
+    <circle cx="40" cy="58" r="1"/>
+  </g>
+  <!-- Spikes -->
+  <g fill="#111827">
+    <path d="M24 48 L22 42 L26 48"/>
+    <path d="M32 48 L32 40 L36 48"/>
+    <path d="M40 48 L42 42 L38 48"/>
+    <path d="M24 58 L22 52 L26 58"/>
+    <path d="M40 58 L42 52 L38 58"/>
+  </g>
+  <!-- Blood drip -->
+  <path d="M32 54 Q32 56 34 54 M30 54 Q30 56 32 54" fill="#7f1d1d"/>
+  <circle cx="34" cy="56" r="2" fill="#7f1d1d"/>
+  <circle cx="32" cy="56" r="1.5" fill="#dc2626"/>
+  <!-- Red glow -->
+  <ellipse cx="32" cy="40" rx="14" ry="22" fill="url(#clubGlow)"/>
+</svg>

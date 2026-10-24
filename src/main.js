@@ -1,5 +1,5 @@
 let currentTab = 'monsters'; // 'monsters' | 'quests' | 'shop'
-let selectedMonsterId = null;
+let selectedMonsterIds = []; // массив выбранных монстров на задание
 let selectedQuestId = null;
 let selectedCandidateId = null;
 let toastMsg = "";
@@ -31,6 +31,22 @@ async function init() {
     const T = Renderer.THEME;
     Game.ctx.fillStyle = T.bg;
     Game.ctx.fillRect(0, 0, 640, 480);
+
+    // Фоновое изображение по состоянию
+    if (Game.state === 'agency') {
+      Renderer.drawImage('bg_agency', 0, 0, 640, 480);
+      // Затемнение фона для читаемости UI
+      Game.ctx.fillStyle = 'rgba(14,15,19,0.55)';
+      Game.ctx.fillRect(0, 0, 640, 480);
+    } else if (Game.state === 'report') {
+      Renderer.drawImage('bg_agency', 0, 0, 640, 480);
+      Game.ctx.fillStyle = 'rgba(14,15,19,0.7)';
+      Game.ctx.fillRect(0, 0, 640, 480);
+    } else if (Game.state === 'endday') {
+      Renderer.drawImage('bg_agency', 0, 0, 640, 480);
+      Game.ctx.fillStyle = 'rgba(14,15,19,0.75)';
+      Game.ctx.fillRect(0, 0, 640, 480);
+    }
 
     // Сетка
     Game.ctx.strokeStyle = 'rgba(255,255,255,0.02)';
@@ -77,7 +93,17 @@ async function init() {
         if (my >= 90 && my < 260) {
           for (let i = 0; i < a.monsters.length; i++) {
             const cy = 100 + i * 45;
-            if (my >= cy && my <= cy + 40) { selectedMonsterId = a.monsters[i].id; Audio.playSfx('click'); return; }
+            if (my >= cy && my <= cy + 40) {
+              if (a.monsters[i].status === 'idle') {
+                if (selectedMonsterIds.includes(a.monsters[i].id)) {
+                  selectedMonsterIds = selectedMonsterIds.filter(id => id !== a.monsters[i].id);
+                } else if (selectedMonsterIds.length < 3) {
+                  selectedMonsterIds.push(a.monsters[i].id);
+                }
+                Audio.playSfx('click');
+              } else showToast("Монстр ранен!");
+              return;
+            }
           }
         }
         if (my >= 290 && my < 380) {
@@ -115,17 +141,28 @@ async function init() {
           for (let i = 0; i < a.monsters.length; i++) {
             const cx = 180 + i * 90;
             if (mx >= cx && mx <= cx + 80) {
-              if (a.monsters[i].status === 'idle') { selectedMonsterId = a.monsters[i].id; Audio.playSfx('click'); }
-              else showToast("Монстр ранен!");
+              if (a.monsters[i].status === 'idle') {
+                if (selectedMonsterIds.includes(a.monsters[i].id)) {
+                  selectedMonsterIds = selectedMonsterIds.filter(id => id !== a.monsters[i].id);
+                } else if (selectedMonsterIds.length < 3) {
+                  selectedMonsterIds.push(a.monsters[i].id);
+                }
+                Audio.playSfx('click');
+              } else showToast("Монстр ранен!");
               return;
             }
           }
         }
-        if (my >= 430 && my <= 470 && selectedQuestId && selectedMonsterId) {
-          const m = a.monsters.find(x => x.id === selectedMonsterId);
+        if (my >= 430 && my <= 470 && selectedQuestId && selectedMonsterIds.length > 0) {
           const q = a.quests.find(x => x.id === selectedQuestId);
-          if (m && q && m.status === 'idle') {
-            a.lastResult = Models.calculateResult(m, q, a); Audio.playSfx('depart'); Game.setState('report');
+          if (q) {
+            const results = selectedMonsterIds.map(mid => {
+              const m = a.monsters.find(x => x.id === mid);
+              return m && m.status === 'idle' ? Models.calculateResult(m, q, a) : null;
+            }).filter(Boolean);
+            if (results.length > 0) {
+              a.lastResult = results; Audio.playSfx('depart'); Game.setState('report');
+            }
           }
         }
       }
@@ -175,30 +212,33 @@ async function init() {
         alert("Вы выжили 14 дней!");
         Game.agency = Models.createAgency();
       }
-      currentTab = 'monsters'; selectedQuestId = null; selectedMonsterId = null;
+      currentTab = 'monsters'; selectedQuestId = null; selectedMonsterIds = [];
       Game.setState('agency');
     }
   }
 
   function applyResult() {
     const a = Game.agency;
-    const r = a.lastResult;
+    const results = Array.isArray(a.lastResult) ? a.lastResult : [a.lastResult];
 
-    a.gold += r.gold;
-    a.dayStats.goldEarned += r.gold;
-    if (r.type === 'overkill') a.threat = Math.min(1.0, a.threat + 0.05);
+    results.forEach(r => {
+      a.gold += r.gold;
+      a.dayStats.goldEarned += r.gold;
+      if (r.type === 'overkill') a.threat = Math.min(1.0, a.threat + 0.05);
 
-    const m = a.monsters.find(x => x.id === r.monsterId);
-    if (r.type === 'success' || r.type === 'overkill') a.dayStats.questsDone++;
+      const m = a.monsters.find(x => x.id === r.monsterId);
+      if (r.type === 'success' || r.type === 'overkill') a.dayStats.questsDone++;
 
-    if (m) {
-      if (r.type === 'lost') { a.monsters = a.monsters.filter(x => x.id !== m.id); a.dayStats.losses++; }
-      else if (r.type === 'injury' || r.injury) m.status = 'injured';
-    }
+      if (m) {
+        if (r.type === 'lost') { a.monsters = a.monsters.filter(x => x.id !== m.id); a.dayStats.losses++; }
+        else if (r.type === 'injury' || r.injury) m.status = 'injured';
+      }
 
-    a.dayStats.missions.push({ monsterName: r.monsterName, questTitle: r.questTitle, type: r.type, gold: r.gold });
-    a.quests = a.quests.filter(x => x.id !== r.questId);
-    a.lastResult = null; selectedMonsterId = null; selectedQuestId = null;
+      a.dayStats.missions.push({ monsterName: r.monsterName, questTitle: r.questTitle, type: r.type, gold: r.gold });
+      a.quests = a.quests.filter(x => x.id !== r.questId);
+    });
+
+    a.lastResult = null; selectedMonsterIds = []; selectedQuestId = null;
   }
 
   function renderAgency() {
@@ -237,12 +277,13 @@ async function init() {
       Renderer.text('ВАШИ МОНСТРЫ', 180, 85, { color: T.muted, font: 'bold 14px system-ui' });
       a.monsters.forEach((m, i) => {
         const cy = 100 + i * 45;
-        if (cy > 250) return;
-        const isSel = selectedMonsterId === m.id;
-        Renderer.roundRect(180, cy, 430, 40, 6, isSel ? T.panelHi : T.bg);
+        const isSel = selectedMonsterIds.includes(m.id);
+        const monImgKey = 'mon_' + m.speciesKey.toLowerCase();
+      Renderer.roundRect(180, cy, 430, 40, 6, isSel ? T.panelHi : T.bg);
         Renderer.roundRectStroke(180, cy, 430, 40, 6, isSel ? T.success : T.border, isSel ? 2 : 1);
-        Renderer.text(`${m.name} [${m.speciesLabel}]`, 195, cy + 18, { color: T.text, font: 'bold 14px system-ui' });
-        Renderer.text(`СИЛ:${m.stats.str} ЛОВ:${m.stats.agi} ИНТ:${m.stats.int}`, 195, cy + 32, { color: T.muted, font: '11px monospace' });
+        Renderer.drawMonsterIcon(monImgKey, 188, cy + 3, 34);
+        Renderer.text(`${m.name} [${m.speciesLabel}]`, 235, cy + 18, { color: T.text, font: 'bold 14px system-ui' });
+        Renderer.text(`СИЛ:${m.stats.str} ЛОВ:${m.stats.agi} ИНТ:${m.stats.int}`, 235, cy + 32, { color: T.muted, font: '11px monospace' });
         Renderer.text(m.status === 'idle' ? 'Свободен' : 'Ранен', 595, cy + 18, { color: m.status === 'idle' ? T.success : T.danger, size: '12px', align: 'right' });
       });
 
@@ -272,30 +313,33 @@ async function init() {
           Renderer.text('ПЕРЕХВАЧЕНО КОНКУРЕНТАМИ', 195, cy + 44, { color: T.danger, font: 'bold 12px system-ui' });
           return;
         }
+        const questImgKey = 'quest_' + q.type.toLowerCase();
         Renderer.roundRect(180, cy, 430, 60, 6, isSel ? T.panelHi : T.bg);
         Renderer.roundRectStroke(180, cy, 430, 60, 6, isSel ? T.select : T.border, isSel ? 2 : 1);
-        Renderer.text(q.title, 195, cy + 22, { color: T.text, font: 'bold 14px system-ui' });
-        Renderer.text(`Сложность: ${q.difficulty} | Риск: ${q.risk}`, 195, cy + 42, { color: T.muted, size: '12px' });
+        Renderer.drawImage(questImgKey, 188, cy + 6, 48, 48);
+        Renderer.text(q.title, 248, cy + 22, { color: T.text, font: 'bold 14px system-ui' });
+        Renderer.text(`Сложность: ${q.difficulty} | Риск: ${q.risk}`, 248, cy + 42, { color: T.muted, size: '12px' });
         Renderer.text(`${q.reward} зол.`, 590, cy + 22, { color: T.accent, align: 'right', font: 'bold 14px system-ui' });
       });
 
       if (selectedQuestId) {
         Renderer.roundRect(180, 370, 430, 75, 6, T.panelHi);
         Renderer.roundRectStroke(180, 370, 430, 75, 6, T.border, 1);
-        Renderer.text('Кого отправим?', 195, 390, { color: T.muted, size: '12px' });
+        Renderer.text('Кого отправим? (до 3 монстров)', 195, 390, { color: T.muted, size: '12px' });
         a.monsters.forEach((m, i) => {
-          const cx = 195 + i * 90;
-          if (cx > 550) return;
-          const isSelM = selectedMonsterId === m.id;
+          const cx = 180 + i * 95;
+          const isSelM = selectedMonsterIds.includes(m.id);
+          const monImgKey = 'mon_' + m.speciesKey.toLowerCase();
           Renderer.roundRect(cx, 400, 80, 35, 4, isSelM ? T.bg : '#111');
           Renderer.roundRectStroke(cx, 400, 80, 35, 4, isSelM ? T.success : T.border, 1);
-          Renderer.text(m.name, cx + 40, 415, { color: isSelM ? T.success : T.text, align: 'center', size: '12px', font: 'bold 12px system-ui' });
-          Renderer.text(m.status === 'idle' ? 'Готов' : 'Ранен', cx + 40, 428, { color: m.status === 'idle' ? T.success : T.danger, align: 'center', size: '10px' });
+          Renderer.drawMonsterIcon(monImgKey, cx + 6, 403, 24);
+          Renderer.text(m.name, cx + 38, 413, { color: isSelM ? T.success : T.text, align: 'center', size: '10px', font: 'bold system-ui' });
+          Renderer.text(m.status === 'idle' ? 'Готов' : 'Ранен', cx + 40, 426, { color: m.status === 'idle' ? T.success : T.danger, align: 'center', size: '8px' });
         });
-        const canSend = selectedMonsterId !== null;
+        const canSend = selectedMonsterIds.length > 0;
         Renderer.gradientRect(180, 440, 430, 25, canSend ? '#3b82f6' : '#2c313c', canSend ? '#1d4ed8' : '#171a21');
         Renderer.roundRectStroke(180, 440, 430, 25, 4, canSend ? T.select : T.border, 1);
-        Renderer.text('ОТПРАВИТЬ НА ЗАДАНИЕ', 395, 457, { color: canSend ? '#fff' : T.muted, align: 'center', font: 'bold 12px system-ui' });
+        Renderer.text(`ОТПРАВИТЬ (${selectedMonsterIds.length}/3)`, 395, 457, { color: canSend ? '#fff' : T.muted, align: 'center', font: 'bold 12px system-ui' });
       }
     }
 
@@ -340,18 +384,32 @@ async function init() {
   }
 
   function renderReport() {
-    const r = Game.agency.lastResult;
+    const results = Array.isArray(Game.agency.lastResult) ? Game.agency.lastResult : [Game.agency.lastResult];
     const T = Renderer.THEME;
     const ctx = Game.ctx;
 
     Renderer.roundRect(50, 50, 540, 380, 12, T.panel);
     Renderer.roundRectStroke(50, 50, 540, 380, 12, T.border, 2);
 
+    if (results.length === 1) {
+      renderSingleReport(results[0]);
+    } else {
+      renderMultiReport(results);
+    }
+  }
+
+  function renderSingleReport(r) {
+    const T = Renderer.THEME;
+    const ctx = Game.ctx;
+
     Renderer.text(`Докладная от ${r.monsterName}`, 320, 90, { color: T.muted, align: 'center', font: 'bold 16px system-ui' });
     Renderer.text(`Задание: ${r.questTitle}`, 320, 115, { color: T.accent, align: 'center', font: 'italic 14px system-ui' });
 
+    Renderer.text(`Результат: ${r.modifier}`, 320, 145, { color: r.modifier === 'ОВЕРКИЛЛ' ? T.danger : T.success, align: 'center', font: 'bold 16px system-ui' });
+    if (r.modifierDesc) Renderer.text(r.modifierDesc, 320, 165, { color: T.muted, align: 'center', size: '12px' });
+
     const maxWidth = 460;
-    const startY = 160;
+    const startY = 180;
     const lineHeight = 26;
 
     ctx.font = 'italic 18px Georgia';
@@ -382,6 +440,25 @@ async function init() {
     Renderer.gradientRect(220, 385, 200, 40, '#3b82f6', '#1d4ed8');
     Renderer.roundRectStroke(220, 385, 200, 40, 6, T.select, 1);
     Renderer.text('ПРИНЯТЬ ОТЧЁТ', 320, 405, { color: '#fff', align: 'center', font: 'bold 16px system-ui' });
+  }
+
+  function renderMultiReport(results) {
+    const T = Renderer.THEME;
+    Renderer.text(`МНОГОКРАТНЫЙ ОТЧЁТ (${results.length} монстров)`, 320, 85, { color: T.muted, align: 'center', font: 'bold 14px system-ui' });
+    Renderer.text(`Задание: ${results[0].questTitle}`, 320, 110, { color: T.accent, align: 'center', font: 'italic 14px system-ui' });
+
+    results.forEach((r, i) => {
+      const y = 140 + i * 70;
+      Renderer.roundRect(80, y, 480, 60, 6, T.bg);
+      Renderer.roundRectStroke(80, y, 480, 60, 6, r.modifier === 'ОВЕРКИЛЛ' ? T.danger : T.border, 1);
+      Renderer.text(`${r.monsterName}`, 100, y + 20, { color: T.text, font: 'bold 13px system-ui' });
+      Renderer.text(`${r.modifier} — ${r.modifierDesc || ''}`, 100, y + 40, { color: r.modifier === 'ОВЕРКИЛЛ' ? T.danger : T.success, size: '11px' });
+      Renderer.text(`"${r.reportText}"`, 100, y + 55, { color: T.muted, size: '10px' });
+    });
+
+    Renderer.gradientRect(220, 385, 200, 40, '#3b82f6', '#1d4ed8');
+    Renderer.roundRectStroke(220, 385, 200, 40, 6, T.select, 1);
+    Renderer.text('ПРИНЯТЬ ОТЧЁТЫ', 320, 405, { color: '#fff', align: 'center', font: 'bold 16px system-ui' });
   }
 
   function renderEndDay() {

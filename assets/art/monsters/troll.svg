@@ -1,0 +1,83 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="trollBody" cx="40%" cy="40%" r="70%">
+      <stop offset="0%" style="stop-color:#111827"/>
+      <stop offset="50%" style="stop-color:#0b0c10"/>
+      <stop offset="100%" style="stop-color:#030712"/>
+    </radialGradient>
+    <linearGradient id="trollSkin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#374151"/>
+      <stop offset="50%" style="stop-color:#1f2937"/>
+      <stop offset="100%" style="stop-color:#111827"/>
+    </linearGradient>
+    <radialGradient id="trollEye" cx="45%" cy="45%" r="60%">
+      <stop offset="0%" style="stop-color:#ef4444"/>
+      <stop offset="100%" style="stop-color:#7f1d1d"/>
+    </radialGradient>
+    <filter id="trollShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+  <g filter="url(#trollShadow)">
+    <!-- Massive hunched body -->
+    <path d="M14 52 Q32 44 50 52 Q32 36 14 52" fill="url(#trollBody)" opacity="0.95"/>
+    <!-- Chest -->
+    <path d="M22 40 Q32 46 42 40 Q32 34 22 40 Z" fill="#111827" opacity="0.9"/>
+    <!-- Hunchback -->
+    <path d="M20 34 Q32 28 44 34 Q32 38 20 34 Z" fill="#0b0c10" opacity="0.95"/>
+    <!-- Armored shoulder plates -->
+    <g fill="#1f2937" stroke="#374151" stroke-width="1">
+      <path d="M10 30 Q6 26 8 22 Q14 24 18 28 Q12 32 10 30 Z"/>
+      <path d="M54 30 Q58 26 56 22 Q50 24 46 28 Q52 32 54 30 Z"/>
+    </g>
+    <!-- Skin head -->
+    <ellipse cx="32" cy="18" rx="14" ry="13" fill="url(#trollSkin)" opacity="0.95"/>
+    <!-- Brow ridge -->
+    <path d="M16 12 Q32 8 48 12" stroke="#111827" stroke-width="3" fill="none"/>
+    <!-- Deep sockets -->
+    <ellipse cx="24" cy="16" rx="4" ry="4.5" fill="#0a0a0f"/>
+    <ellipse cx="40" cy="16" rx="4" ry="4.5" fill="#0a0a0f"/>
+    <!-- Glowing red eyes -->
+    <circle cx="24" cy="16" r="1.8" fill="url(#trollEye)"/>
+    <circle cx="40" cy="16" r="1.8" fill="url(#trollEye)"/>
+    <circle cx="24" cy="15.5" r="0.7" fill="#fca5a5"/>
+    <circle cx="40" cy="15.5" r="0.7" fill="#fca5a5"/>
+    <!-- Large nose -->
+    <path d="M28 18 Q32 22 36 18" fill="#374151" opacity="0.9"/>
+    <path d="M29 19 L31 19" stroke="#111827" stroke-width="0.5"/>
+    <!-- Mouth with tusks -->
+    <path d="M24 24 Q32 28 40 24" fill="none" stroke="#0a0a0f" stroke-width="1.5"/>
+    <path d="M26 24 L25 30" stroke="#e5e7eb" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M38 24 L39 30" stroke="#e5e7eb" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <!-- Blood-stained teeth -->
+    <g fill="#e5e7eb" opacity="0.9">
+      <rect x="28" y="24" width="2" height="1.5"/>
+      <rect x="30" y="24" width="2" height="1.5"/>
+      <rect x="32" y="24" width="2" height="1.5"/>
+      <rect x="34" y="24" width="2" height="1.5"/>
+    </g>
+    <!-- Blood drips -->
+    <g fill="#7f1d1d" opacity="0.8">
+      <path d="M28 24 Q28 28 30 24 Z"/>
+      <path d="M34 24 Q34 28 32 24 Z"/>
+    </g>
+    <!-- Club arm -->
+    <g fill="#1f2937" stroke="#374151" stroke-width="1">
+      <path d="M14 44 Q10 48 16 52 Q12 48 8 46 Z"/>
+      <path d="M50 44 Q54 48 48 52 Q52 48 56 46 Z"/>
+    </g>
+    <!-- Claws -->
+    <g stroke="#0a0a0f" stroke-width="0.5">
+      <path d="M8 46 L4 42 M10 46 L6 42 M12 46 L8 42"/>
+      <path d="M56 46 L60 42 M54 46 L58 42 M52 46 L56 42"/>
+    </g>
+    <!-- Scars -->
+    <g stroke="#dc2626" stroke-width="0.5" fill="none" opacity="0.6">
+      <path d="M20 14 Q24 16 28 14"/>
+      <path d="M44 14 Q40 16 36 14"/>
+      <path d="M26 20 Q30 22 34 20"/>
+    </g>
+    <!-- Glow -->
+    <ellipse cx="32" cy="22" rx="26" ry="22" fill="url(#trollEye)"/>
+  </g>
+</svg>

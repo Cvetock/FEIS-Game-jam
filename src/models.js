@@ -75,15 +75,29 @@ window.Models = (function () {
     const count = Utils.randInt(3, 4);
     let interceptedCount = 0;
     const interceptMult = agency.upgrades.intel > 0 ? 0.05 : 0.1;
+    const usedTitles = new Set();
+    const templates = Utils.shuffle(Content.QUESTS.slice());
 
-    for (let i = 0; i < count; i++) {
-      const q = createQuest();
+    for (let i = 0; i < count && i < templates.length; i++) {
+      const q = templates[i];
+      if (usedTitles.has(q.title)) continue;
+      usedTitles.add(q.title);
+
+      const quest = {
+        id: Utils.uid(),
+        title: q.title,
+        difficulty: q.diff,
+        reward: q.reward,
+        risk: q.diff > 4 ? 'Высокий' : 'Низкий',
+        type: q.type,
+        intercepted: false
+      };
       if (Utils.chance(agency.threat * interceptMult)) {
-        q.intercepted = true;
-        q.reward = 0;
+        quest.intercepted = true;
+        quest.reward = 0;
         interceptedCount++;
       }
-      agency.quests.push(q);
+      agency.quests.push(quest);
     }
     agency.dayStats.interceptedCount = interceptedCount;
   }
@@ -91,7 +105,12 @@ window.Models = (function () {
   function nextDay(agency) {
     agency.day++;
     agency.monsters.forEach(m => { if (m.status === 'injured') m.status = 'idle'; });
-    agency.candidates = [createMonster(), createMonster(), createMonster()];
+    const rosterSpecies = agency.monsters.map(m => m.speciesKey);
+    agency.candidates = [];
+    while (agency.candidates.length < 3) {
+      const cand = createMonster();
+      if (!rosterSpecies.includes(cand.speciesKey)) agency.candidates.push(cand);
+    }
     agency.threat = Math.min(1.0, agency.threat + 0.1);
     agency.dayStats = { goldEarned: 0, questsDone: 0, interceptedCount: 0, losses: 0, missions: [] };
     generateQuests(agency);
@@ -163,12 +182,17 @@ window.Models = (function () {
     const overkillThreshold = quest.difficulty * 1.5;
 
     let type = 'fail'; let gold = 0; let injury = false; let threatAdd = 0;
+    let modifier = 'Нет'; let modifierDesc = '';
 
     if (Math.random() < chance) {
       if (roll >= overkillThreshold) {
         type = 'overkill'; gold = Math.floor(quest.reward * 1.5); threatAdd = 1; injury = Utils.chance(0.3); Audio.playSfx('win');
+        modifier = 'ОВЕРКИЛЛ';
+        modifierDesc = `Награда x1.5 (+${gold - quest.reward})`;
       } else {
         type = 'success'; gold = quest.reward; Audio.playSfx('success');
+        modifier = 'Успех';
+        modifierDesc = `Базовая награда (+${gold})`;
       }
     } else {
       const r = Math.random();
@@ -178,13 +202,21 @@ window.Models = (function () {
       Audio.playSfx('fail');
     }
 
+    // Выбираем отчёт оверкилла по типу задания
+    const overkillKeyMap = {
+      farm: 'overkill_farm', caravan: 'overkill_caravan', cave: 'overkill_cave',
+      sewer: 'overkill_sewer', bridge: 'overkill_bridge', tower: 'overkill_tower',
+      village: 'overkill_village', warehouse: 'overkill_warehouse'
+    };
+    const overkillKey = overkillKeyMap[quest.type] || 'overkill_farm';
+
     let honesty = 0.1;
     if (monster.stats.int >= 14) honesty = 1.0;
     else if (monster.stats.int >= 8) honesty = 0.5;
     if (agency.upgrades.lie_school > 0 && monster.stats.int < 14) honesty = Math.min(1.0, honesty * 1.25);
 
     let reportKey = '';
-    if (type === 'overkill') reportKey = 'overkill';
+    if (type === 'overkill') reportKey = overkillKey;
     else if (type === 'injury') reportKey = 'injury';
     else if (type === 'lost') reportKey = 'lost';
     else if (type === 'success') reportKey = Utils.chance(honesty) ? 'success_honest' : 'success_lie';
@@ -192,7 +224,7 @@ window.Models = (function () {
 
     const reportText = Utils.pick(Content.REPORTS[reportKey]);
 
-    return { type, gold, threatAdd, injury, reportText, monsterId: monster.id, questId: quest.id, questTitle: quest.title, monsterName: monster.name };
+    return { type, gold, threatAdd, injury, modifier, modifierDesc, reportText, monsterId: monster.id, questId: quest.id, questTitle: quest.title, monsterName: monster.name };
   }
 
   return {

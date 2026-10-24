@@ -50,7 +50,6 @@ window.Renderer = {
   text(str, x, y, { color = '#d6d9e0', size = '16px', align = 'start', font = 'system-ui', baseline = 'alphabetic', weight = 'normal', style = 'normal' } = {}) {
     const { ctx } = this;
     ctx.fillStyle = color;
-    // Если передан полный шрифт с размером, используем его. Иначе собираем из частей.
     ctx.font = font.includes('px') ? font : `${style} ${weight} ${size} ${font}`;
     ctx.textAlign = align;
     ctx.textBaseline = baseline;
@@ -66,5 +65,54 @@ window.Renderer = {
     grad.addColorStop(1, colorBottom);
     ctx.fillStyle = grad;
     ctx.fillRect(x, y, w, h);
+  },
+
+  // === Рисование изображений ===
+  drawImage(name, x, y, w, h) {
+    const img = window.Assets.get(name);
+    if (img && img.complete && img.naturalWidth > 0) {
+      this.ctx.drawImage(img, x, y, w, h);
+      return true;
+    }
+    return false;
+  },
+
+  // Рисует карточку с фоном и иконкой/изображением по центру
+  drawCard(name, x, y, w, h, borderColor = null) {
+    const ctx = this.ctx;
+    // Фон карточки
+    this.roundRect(x, y, w, h, 8, '#1a1520');
+    this.roundRectStroke(x, y, w, h, 8, borderColor || this.border, 1.5);
+
+    // Внутренняя область для изображения
+    const pad = 8;
+    const imgW = w - pad * 2;
+    const imgH = h - pad * 2 - 30; // место для текста снизу
+    const drawn = this.drawImage(name, x + pad, y + pad, imgW, imgH);
+
+    // Если изображения нет — рисуем заглушку
+    if (!drawn) {
+      ctx.fillStyle = '#2d1f14';
+      ctx.fillRect(x + pad, y + pad, imgW, imgH);
+      ctx.fillStyle = this.muted;
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(name, x + w / 2, y + h / 2);
+    }
+
+    return drawn;
+  },
+
+  // Рисует иконку монстра в списке
+  drawMonsterIcon(name, x, y, size) {
+    const img = window.Assets.get(name);
+    if (img && img.complete && img.naturalWidth > 0) {
+      this.ctx.drawImage(img, x, y, size, size);
+      return true;
+    }
+    // Fallback: цветной квадрат с границей
+    this.roundRect(x, y, size, size, 4, '#1a1520');
+    this.roundRectStroke(x, y, size, size, 4, this.border, 1);
+    return false;
   }
 };

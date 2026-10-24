@@ -1,0 +1,41 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="reconGlow" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" style="stop-color:#a855f7;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#6b21a8;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="64" height="64" fill="#0b0c10"/>
+  <!-- Binoculars body -->
+  <g fill="#1f2937" stroke="#374151" stroke-width="1">
+    <rect x="18" y="24" width="28" height="16" rx="2"/>
+    <circle cx="26" cy="32" r="7" fill="#111827"/>
+    <circle cx="38" cy="32" r="7" fill="#111827"/>
+  </g>
+  <!-- Lenses -->
+  <g fill="#0a0a0f">
+    <circle cx="26" cy="32" r="5"/>
+    <circle cx="38" cy="32" r="5"/>
+  </g>
+  <!-- Lens highlights -->
+  <g fill="#e5e7eb" opacity="0.3">
+    <circle cx="24" cy="30" r="1.5"/>
+    <circle cx="36" cy="30" r="1.5"/>
+  </g>
+  <!-- Bridge -->
+  <rect x="32" y="28" width="4" height="8" fill="#374151"/>
+  <!-- Handles -->
+  <g fill="#111827">
+    <rect x="18" y="38" width="4" height="12" rx="1"/>
+    <rect x="42" y="38" width="4" height="12" rx="1"/>
+  </g>
+  <!-- Strap -->
+  <path d="M16 34 Q16 44 24 46 Q32 48 40 46 Q48 44 48 34" fill="none" stroke="#374151" stroke-width="2"/>
+  <!-- Focus rings -->
+  <g stroke="#6b7280" stroke-width="1" fill="none">
+    <circle cx="26" cy="32" r="6"/>
+    <circle cx="38" cy="32" r="6"/>
+  </g>
+  <!-- Purple glow -->
+  <ellipse cx="32" cy="32" rx="22" ry="22" fill="url(#reconGlow)"/>
+</svg>
