@@ -4,16 +4,16 @@
 (function () {
   'use strict';
 
-  const W = 640;
-  const H = 480;
+  const W = 1280;
+  const H = 720;
   const T = Renderer.THEME;
   const SAVE_KEY = 'feis_last_human_v1';
 
   // ── Сетка трёх зон ───────────────────────────────────────────────────────
-  const TOP_FULL = 108;
-  const TOP_MINI = 26;
-  const NAV_Y = 428, NAV_H = 44;
-  const DAY_Y = 376, DAY_H = 44;
+  const TOP_FULL = 130;
+  const TOP_MINI = 34;
+  const NAV_Y = 650, NAV_H = 52;
+  const DAY_Y = 600, DAY_H = 44;
   const SLOTS = 6;
 
   const QUEST_ART = {
@@ -111,7 +111,7 @@
 
   function centralRect() {
     const top = panelHeight() + 6;
-    return { x: 10, y: top, w: 620, h: 370 - top };
+    return { x: 18, y: top, w: W - 36, h: H - top - 200 - 14 };
   }
 
   function innerRect(c) { return { x: c.x + 12, y: c.y + 8, w: c.w - 24, h: c.h - 16 }; }
@@ -188,23 +188,23 @@
 
     // Шапка: ресурсы всегда видны
     Renderer.gradientRect(0, 0, W, 24, 'rgba(12,8,5,0.92)', 'rgba(12,8,5,0.72)');
-    Renderer.text('ГИЛЬДИЯ', 12, 16, { color: '#d8b96a', font: 'bold 10px Georgia' });
-    Renderer.text('ДЕНЬ ' + a.day + '/' + a.maxDays, 78, 16,
-      { color: '#e7d7ae', font: 'bold 9px Georgia' });
-    Renderer.text(a.gold + ' зол.', 158, 16, { color: '#e7c765', font: 'bold 9px Georgia' });
+    Renderer.text('ГИЛЬДИЯ', 24, 16, { color: '#d8b96a', font: 'bold 11px Georgia' });
+    Renderer.text('ДЕНЬ ' + a.day + '/' + a.maxDays, 140, 16,
+      { color: '#e7d7ae', font: 'bold 10px Georgia' });
+    Renderer.text(a.gold + ' зол.', 280, 16, { color: '#e7c765', font: 'bold 10px Georgia' });
 
     const stage = Models.threatStage(a.threat);
-    Renderer.text('УГРОЗА ' + Math.round(a.threat * 100) + '%', 224, 16,
-      { color: STAGE_LIGHT[stage], font: 'bold 9px Georgia' });
-    Renderer.roundRect(304, 10, 48, 5, 2, 'rgba(0,0,0,0.5)');
-    Renderer.roundRect(304, 10, Math.max(2, 48 * Math.min(1, a.threat)), 5, 2, STAGE_LIGHT[stage]);
+    Renderer.text('УГРОЗА ' + Math.round(a.threat * 100) + '%', 440, 16,
+      { color: STAGE_LIGHT[stage], font: 'bold 10px Georgia' });
+    Renderer.roundRect(560, 10, 140, 6, 3, 'rgba(0,0,0,0.5)');
+    Renderer.roundRect(560, 10, Math.max(4, 140 * Math.min(1, a.threat)), 6, 3, STAGE_LIGHT[stage]);
 
-    Renderer.text('ШТАТ ' + a.monsters.length + '/' + Models.rosterCap(a), 362, 16,
-      { color: '#cbb98f', font: 'bold 9px Georgia' });
-    Renderer.text('СОБЕС. ' + a.interviewsLeft + '/3', 432, 16,
-      { color: a.interviewsLeft > 0 ? '#cbb98f' : '#d08a7a', font: 'bold 9px Georgia' });
-    Renderer.text('ЗАКАЗЫ ' + a.quests.filter(function (q) { return !q.intercepted; }).length, 506, 16,
-      { color: '#cbb98f', font: 'bold 9px Georgia' });
+    Renderer.text('ШТАТ ' + a.monsters.length + '/' + Models.rosterCap(a), 740, 16,
+      { color: '#cbb98f', font: 'bold 10px Georgia' });
+    Renderer.text('СОБЕС. ' + a.interviewsLeft + '/3', 880, 16,
+      { color: a.interviewsLeft > 0 ? '#cbb98f' : '#d08a7a', font: 'bold 10px Georgia' });
+    Renderer.text('ЗАКАЗЫ ' + a.quests.filter(function (q) { return !q.intercepted; }).length, 1020, 16,
+      { color: '#cbb98f', font: 'bold 10px Georgia' });
 
     if (topH > 40) {
       for (let i = 0; i < SLOTS; i++) drawSlot(a, i, topH);
@@ -212,10 +212,10 @@
     ctx.restore();
 
     // Цепь-ручка
-    Renderer.chain(620, 4, Math.max(12, topH - 18));
-    Renderer.text(panelTarget ? '▼' : '▲', 620, topH - 4,
+    Renderer.chain(W - 20, 4, Math.max(12, topH - 18));
+    Renderer.text(panelTarget ? '▼' : '▲', W - 20, topH - 4,
       { color: 'rgba(230,210,170,0.8)', align: 'center', font: 'bold 9px system-ui' });
-    addArea(598, 0, 42, Math.max(TOP_MINI, topH), function () {
+    addArea(W - 42, 0, 42, Math.max(TOP_MINI, topH), function () {
       panelTarget = panelTarget ? 0 : 1;
       Audio.playSfx('pick');
       showToast(panelTarget ? 'Доска свёрнута' : 'Доска развёрнута');
@@ -223,25 +223,27 @@
   }
 
   function drawSlot(a, i, topH) {
-    const x = 12 + i * 100;
-    const frame = { x: x + 22, y: 24, w: 54, h: 54 };
+    const slotSpacing = 200;
+    const startX = 24;
+    const x = startX + i * slotSpacing;
+    const frame = { x: x + 40, y: 28, w: 64, h: 64 };
     const m = a.monsters[i];
     const capped = i < Models.rosterCap(a);
-    const hovered = hoverRect(x + 14, 20, 72, 78);
+    const hovered = hoverRect(x + 14, 24, 110, 100);
 
     if (m) {
       Renderer.note(frame.x - 2, frame.y - 2, frame.w + 4, frame.h + 4, { pin: false });
       Renderer.drawMonsterIcon('mon_' + m.speciesKey, frame.x + 2, frame.y + 2, frame.w - 4);
       const st = STATUS_LABELS[m.status] || STATUS_LABELS.injured;
-      Renderer.roundRect(frame.x + frame.w - 9, frame.y + frame.h - 9, 8, 8, 4, st.color);
-      Renderer.roundRectStroke(frame.x + frame.w - 9, frame.y + frame.h - 9, 8, 8, 4, 'rgba(30,18,8,0.85)', 1);
+      Renderer.roundRect(frame.x + frame.w - 10, frame.y + frame.h - 10, 10, 10, 5, st.color);
+      Renderer.roundRectStroke(frame.x + frame.w - 10, frame.y + frame.h - 10, 10, 10, 5, 'rgba(30,18,8,0.85)', 1);
 
-      Renderer.ink(m.name, x + 49, 90, { align: 'center', font: 'bold 9px Georgia' });
-      Renderer.text(st.text, x + 49, 99, { color: st.color, align: 'center', font: 'bold 6.5px system-ui' });
+      Renderer.ink(m.name, x + 90, 110, { align: 'center', font: 'bold 11px Georgia' });
+      Renderer.text(st.text, x + 90, 124, { color: st.color, align: 'center', font: 'bold 8px system-ui' });
 
       if (hovered) Renderer.roundRectStroke(frame.x - 2, frame.y - 2, frame.w + 4, frame.h + 4, 3, '#e8c76a', 2);
 
-      addArea(x + 14, 20, 72, 82, function () {
+      addArea(x + 14, 24, 110, 102, function () {
         selectedMonsterViewId = m.id;
         setState('monster');
       });
@@ -251,21 +253,21 @@
     if (!capped) {
       Renderer.roundRect(frame.x - 2, frame.y - 2, frame.w + 4, frame.h + 4, 3, 'rgba(10,7,4,0.55)');
       Renderer.roundRectStroke(frame.x - 2, frame.y - 2, frame.w + 4, frame.h + 4, 3, 'rgba(90,70,45,0.5)', 1);
-      Renderer.lockIcon(frame.x + frame.w / 2, frame.y + frame.h / 2, 26, '#6b5a45');
-      Renderer.text('закрыто', x + 49, 90, { color: '#8a7355', align: 'center', font: 'bold 8px Georgia' });
+      Renderer.lockIcon(frame.x + frame.w / 2, frame.y + frame.h / 2, 32, '#6b5a45');
+      Renderer.text('закрыто', x + 90, 110, { color: '#8a7355', align: 'center', font: 'bold 9px Georgia' });
       if (hovered) {
         Renderer.roundRectStroke(frame.x - 2, frame.y - 2, frame.w + 4, frame.h + 4, 3, 'rgba(168,134,42,0.55)', 1.5);
-        showTip(x + 49, 99, 'Улучшите стойла');
+        showTip(x + 90, 124, 'Улучшите стойла');
       }
       return;
     }
 
     Renderer.roundRectStroke(frame.x, frame.y, frame.w, frame.h, 3, 'rgba(220,200,160,0.35)', 1.5);
     Renderer.text('+', frame.x + frame.w / 2, frame.y + frame.h / 2 + 7,
-      { color: 'rgba(240,225,190,0.5)', align: 'center', font: 'bold 20px Georgia' });
-    Renderer.text('пусто', x + 49, 90, { color: '#8a7355', align: 'center', font: 'bold 8px Georgia' });
+      { color: 'rgba(240,225,190,0.5)', align: 'center', font: 'bold 24px Georgia' });
+    Renderer.text('пусто', x + 90, 110, { color: '#8a7355', align: 'center', font: 'bold 9px Georgia' });
 
-    addArea(x + 14, 20, 72, 82, function () {
+    addArea(x + 14, 24, 110, 102, function () {
       currentTab = 'hire';
       showToast('Выберите кандидата в разделе «Найм»');
     });
@@ -302,16 +304,16 @@
 
     if (!a.candidates.length) {
       Renderer.ink('Кандидаты на сегодня закончились.', r.x + r.w / 2, r.y + r.h / 2,
-        { align: 'center', font: '12px Georgia' });
-      Renderer.text('Новые придут завтра.', r.x + r.w / 2, r.y + r.h / 2 + 18,
-        { color: T.inkSoft, align: 'center', font: '9px Georgia' });
+        { align: 'center', font: '16px Georgia' });
+      Renderer.text('Новые придут завтра.', r.x + r.w / 2, r.y + r.h / 2 + 24,
+        { color: T.inkSoft, align: 'center', font: '12px Georgia' });
       return;
     }
 
-    const gap = 13;
+    const gap = 20;
     const cw = Math.floor((r.w - gap * 2) / 3);
-    const ch = Math.min(r.h - 34, 236);
-    const y0 = r.y + 26 + Math.max(0, (r.h - 34 - ch) / 2);
+    const ch = Math.min(r.h - 40, 320);
+    const y0 = r.y + 34 + Math.max(0, (r.h - 40 - ch) / 2);
 
     a.candidates.forEach(function (cand, i) {
       const x = r.x + i * (cw + gap);
@@ -321,32 +323,35 @@
 
       noteCard(x, y, cw, ch, { shadow: true });
 
-      Renderer.note(x + cw / 2 - 33, y + 8, 66, 66, { pin: false });
-      Renderer.drawMonsterIcon('mon_' + cand.speciesKey, x + cw / 2 - 30, y + 11, 60);
+      Renderer.note(x + cw / 2 - 45, y + 12, 90, 90, { pin: false });
+      Renderer.drawMonsterIcon('mon_' + cand.speciesKey, x + cw / 2 - 42, y + 15, 84);
 
-      Renderer.ink(cand.name, x + cw / 2, y + 90, { align: 'center', font: 'bold 13px Georgia' });
-      Renderer.text('[' + cand.speciesLabel + ']', x + cw / 2, y + 103,
-        { color: T.inkSoft, align: 'center', font: '9px Georgia' });
-      Renderer.text('Черта: ' + cand.traits[0], x + cw / 2, y + 117,
-        { color: '#6b4a18', align: 'center', font: 'italic 8.5px Georgia' });
+      Renderer.ink(cand.name, x + cw / 2, y + 120, { align: 'center', font: 'bold 16px Georgia' });
+      Renderer.text('[' + cand.speciesLabel + ']', x + cw / 2, y + 138,
+        { color: T.inkSoft, align: 'center', font: '11px Georgia' });
+      Renderer.text('Черта: ' + cand.traits[0], x + cw / 2, y + 156,
+        { color: '#6b4a18', align: 'center', font: 'italic 11px Georgia' });
+
+      Renderer.text('Стоимость найма: ' + cand.cost + ' зол.', x + cw / 2, y + 174,
+        { color: T.inkSoft, align: 'center', font: 'bold 11px Georgia' });
 
       const stats = [['СИЛА', cand.stats.str], ['ЛОВ', cand.stats.agi], ['ИНТ', cand.stats.int], ['УДА', cand.stats.luck]];
       stats.forEach(function (s, j) {
-        const sx = x + 12 + (j % 2) * (cw / 2 - 6);
-        const sy = y + 129 + Math.floor(j / 2) * 19;
-        Renderer.text(s[0], sx, sy, { color: T.inkSoft, font: '7.5px system-ui' });
-        Renderer.ink(String(s[1]), sx + cw / 2 - 22, sy, { align: 'right', font: 'bold 12px Georgia' });
+        const sx = x + 16 + (j % 2) * (cw / 2 - 8);
+        const sy = y + 196 + Math.floor(j / 2) * 26;
+        Renderer.text(s[0], sx, sy, { color: T.inkSoft, font: '10px system-ui' });
+        Renderer.ink(String(s[1]), sx + cw / 2 - 30, sy, { align: 'right', font: 'bold 16px Georgia' });
       });
 
-      Renderer.rect(x + 10, y + ch - 48, cw - 20, 1, 'rgba(90,60,25,0.3)');
-      Renderer.text('Найм: 1 собеседование', x + cw / 2, y + ch - 33,
-        { color: T.inkSoft, align: 'center', font: '7.5px Georgia' });
+      Renderer.rect(x + 14, y + ch - 84, cw - 28, 1, 'rgba(90,60,25,0.3)');
+      Renderer.text('Найм: 1 собеседование + ' + cand.cost + ' зол.', x + cw / 2, y + ch - 66,
+        { color: T.inkSoft, align: 'center', font: '10px Georgia' });
 
-      button(x + 12, y + ch - 26, cw - 24, 24, full ? 'СТОЙЛА ПОЛНЫ' : 'НАНЯТЬ', function () {
+      button(x + 16, y + ch - 56, cw - 32, 32, full ? 'СТОЙЛА ПОЛНЫ' : 'НАНЯТЬ', function () {
         hireCandidate(cand);
       }, {
         variant: 'ghost',
-        font: 'bold 9px Georgia',
+        font: 'bold 12px Georgia',
         disabled: !canHire,
         reason: full ? 'Стойла переполнены' : 'Собеседования закончились'
       });
@@ -365,7 +370,7 @@
     if (res.success) {
       a.monsters.push(cand);
       Audio.playSfx('hire');
-      showToast(cand.name + ' принят в отряд!');
+      showToast(cand.name + ' принят в отряд за ' + cand.cost + ' зол.');
     } else {
       Audio.playSfx('reject');
       showToast('Отказ: ' + res.reason);
@@ -376,28 +381,28 @@
   function drawQuestsTab(a, r) {
     tabHeader(r, 'ДОСКА ЗАКАЗОВ', 'перехват ' + Math.round(Models.interceptChance(a) * 100) + '%');
 
-    const cw = 290, chh = 58, gapY = 6;
+    const cw = 380, chh = 72, gapY = 8;
     a.quests.forEach(function (q, i) {
       const col = i % 2, row = Math.floor(i / 2);
-      const x = r.x + col * (cw + 10);
-      const y = r.y + 24 + row * (chh + gapY);
+      const x = r.x + col * (cw + 16);
+      const y = r.y + 28 + row * (chh + gapY);
       drawQuestNote(a, q, x, y, cw, chh);
     });
 
     const quest = a.quests.find(function (q) { return q.id === selectedQuestId; });
-    const panelY = r.y + 24 + 2 * (chh + gapY) + 2;
+    const panelY = r.y + 28 + 2 * (chh + gapY) + 6;
 
     Renderer.rect(r.x, panelY - 4, r.w, 1, 'rgba(90,60,25,0.3)');
-    Renderer.ink(quest ? 'Отправляем на задание' : 'Кого отправим?', r.x, panelY + 10,
-      { font: 'bold 9px Georgia' });
-    Renderer.text(quest ? quest.title : 'Выберите заказ выше', r.x + r.w, panelY + 10,
-      { color: T.inkSoft, align: 'right', font: '7.5px Georgia' });
+    Renderer.ink(quest ? 'Отправляем на задание' : 'Кого отправим?', r.x, panelY + 14,
+      { font: 'bold 11px Georgia' });
+    Renderer.text(quest ? quest.title : 'Выберите заказ выше', r.x + r.w, panelY + 14,
+      { color: T.inkSoft, align: 'right', font: '9px Georgia' });
 
-    const chipY = panelY + 16;
-    const chipW = 92, chipH = 34;
+    const chipY = panelY + 22;
+    const chipW = 110, chipH = 42;
     a.monsters.forEach(function (m, i) {
-      const x = r.x + i * (chipW + 6);
-      if (x + chipW > r.x + r.w - 190) return;
+      const x = r.x + i * (chipW + 8);
+      if (x + chipW > r.x + r.w - 220) return;
       const disabled = m.status !== 'idle';
       const selected = selectedMonsterId === m.id;
       noteCard(x, chipY, chipW, chipH, {
@@ -407,16 +412,16 @@
         onClick: function () { selectedMonsterId = m.id; },
         reason: m.status === 'injured' ? 'Монстр ранен' : 'Монстр отдыхает до завтра'
       });
-      Renderer.drawMonsterIcon('mon_' + m.speciesKey, x + 4, chipY + 5, 24);
-      Renderer.ink(m.name, x + 32, chipY + 14, { font: 'bold 8px Georgia' });
+      Renderer.drawMonsterIcon('mon_' + m.speciesKey, x + 6, chipY + 7, 28);
+      Renderer.ink(m.name, x + 38, chipY + 18, { font: 'bold 9px Georgia' });
       Renderer.text(disabled ? (m.status === 'injured' ? 'ранен' : 'отдыхает')
-        : ('ИНТ ' + m.stats.int + ' · СИЛ ' + m.stats.str), x + 32, chipY + 26,
-        { color: disabled ? '#7a1f1f' : T.inkSoft, font: '7px system-ui' });
+        : ('ИНТ ' + m.stats.int + ' · СИЛ ' + m.stats.str), x + 38, chipY + 32,
+        { color: disabled ? '#7a1f1f' : T.inkSoft, font: '8px system-ui' });
     });
 
-    button(r.x + r.w - 186, chipY, 186, 34, 'ОТПРАВИТЬ НА ЗАДАНИЕ', sendMission, {
+    button(r.x + r.w - 220, chipY, 220, 42, 'ОТПРАВИТЬ НА ЗАДАНИЕ', sendMission, {
       variant: 'ghost',
-      font: 'bold 9px Georgia',
+      font: 'bold 11px Georgia',
       disabled: !quest || !selectedMonsterId,
       reason: !quest ? 'Сначала выберите заказ' : 'Выберите свободного монстра'
     });
@@ -453,8 +458,8 @@
     Renderer.ink(q.reward + ' зол.', x + w - 10, y + 22, { align: 'right', font: 'bold 12px Georgia' });
 
     if (q.species.length) {
-      Renderer.text('нужен: ' + q.species.map(function (s) { return Models.SPECIES[s].label; }).join('/'),
-        x + 54, y + 49, { color: '#6b4a18', font: 'italic 7px Georgia' });
+      Renderer.text('Рекомендуется: ' + q.species.map(function (s) { return Models.SPECIES[s].label; }).join('/') +
+        ' (+2 к статам)', x + 54, y + 49, { color: '#6b4a18', font: 'italic 8px Georgia' });
     }
   }
 
@@ -476,13 +481,13 @@
     tabHeader(r, 'МАГАЗИН ГИЛЬДИИ', a.gold + ' золота');
 
     const keys = Models.UPGRADE_ORDER;
-    const cw = 292, ch = 54, gapX = 12, gapY = 4;
-    const compact = r.h < 250;
+    const cw = 380, ch = 68, gapX = 16, gapY = 8;
+    const compact = r.h < 320;
 
     keys.forEach(function (key, i) {
       const col = i % 2, row = Math.floor(i / 2);
       const x = r.x + col * (cw + gapX);
-      const y = r.y + 24 + row * (ch + gapY) - (compact ? 4 : 0);
+      const y = r.y + 28 + row * (ch + gapY) - (compact ? 6 : 0);
       const conf = Models.UPGRADES_CONFIG[key];
       const lvl = a.upgrades[key];
       const maxed = lvl >= conf.maxLevel;
@@ -495,38 +500,38 @@
         reason: 'Максимальный уровень'
       });
 
-      Renderer.ink(conf.name, x + 10, y + 17, { font: 'bold 10px Georgia' });
-      Renderer.text(conf.desc, x + 10, y + 30, { color: T.inkSoft, font: '7.5px system-ui' });
+      Renderer.ink(conf.name, x + 14, y + 20, { font: 'bold 12px Georgia' });
+      Renderer.text(conf.desc, x + 14, y + 36, { color: T.inkSoft, font: '9px system-ui' });
 
       for (let j = 0; j < conf.maxLevel; j++) {
-        Renderer.roundRect(x + 10 + j * 10, y + 40, 7, 5, 1.5,
+        Renderer.roundRect(x + 14 + j * 12, y + 48, 9, 7, 2,
           j < lvl ? '#8a6d1a' : 'rgba(90,60,25,0.25)');
       }
 
       if (maxed) {
-        Renderer.text('МАКС', x + cw - 10, y + 22, { color: '#3f6b2a', align: 'right', font: 'bold 9px Georgia' });
+        Renderer.text('МАКС', x + cw - 14, y + 28, { color: '#3f6b2a', align: 'right', font: 'bold 11px Georgia' });
       } else {
-        Renderer.ink(cost + ' зол.', x + cw - 10, y + 22,
-          { align: 'right', font: 'bold 9px Georgia', color: affordable ? '#2a1c10' : '#7a1f1f' });
-        Renderer.text(affordable ? 'КУПИТЬ' : 'НЕТ ЗОЛОТА', x + cw - 10, y + 35,
-          { color: affordable ? T.inkSoft : '#7a1f1f', align: 'right', font: 'bold 7px Georgia' });
+        Renderer.ink(cost + ' зол.', x + cw - 14, y + 28,
+          { align: 'right', font: 'bold 11px Georgia', color: affordable ? '#2a1c10' : '#7a1f1f' });
+        Renderer.text(affordable ? 'КУПИТЬ' : 'НЕТ ЗОЛОТА', x + cw - 14, y + 44,
+          { color: affordable ? T.inkSoft : '#7a1f1f', align: 'right', font: 'bold 8px Georgia' });
       }
     });
 
-    const y2 = r.y + 24 + 4 * (ch + gapY) - (compact ? 4 : 0);
-    if (y2 + 46 <= r.y + r.h) {
+    const y2 = r.y + 28 + 4 * (ch + gapY) - (compact ? 6 : 0);
+    if (y2 + 56 <= r.y + r.h) {
       const full = a.monsters.length >= Models.rosterCap(a);
       const canUndead = a.gold >= 150 && !full;
-      noteCard(r.x, y2, r.w, 44, {
+      noteCard(r.x, y2, r.w, 54, {
         disabled: !canUndead,
         onClick: canUndead ? hireUndead : null,
         reason: full ? 'Стойла переполнены' : 'Нужно 150 золота'
       });
-      Renderer.drawIcon('ui_crypt', r.x + 8, y2 + 6, 32, 32, { label: 'Н', color: '#3a2a1a' });
-      Renderer.ink('НАНЯТЬ НЕЖИТЬ', r.x + 52, y2 + 19, { font: 'bold 10px Georgia' });
-      Renderer.text('Случайный Скелет или Вампир, без собеседования', r.x + 52, y2 + 32,
-        { color: T.inkSoft, font: '7.5px system-ui' });
-      Renderer.ink('150 зол.', r.x + r.w - 10, y2 + 24, { align: 'right', font: 'bold 9px Georgia' });
+      Renderer.drawIcon('ui_crypt', r.x + 10, y2 + 8, 40, 40, { label: 'Н', color: '#3a2a1a' });
+      Renderer.ink('НАНЯТЬ НЕЖИТЬ', r.x + 64, y2 + 24, { font: 'bold 12px Georgia' });
+      Renderer.text('Случайный Скелет или Вампир, без собеседования', r.x + 64, y2 + 40,
+        { color: T.inkSoft, font: '9px system-ui' });
+      Renderer.ink('150 зол.', r.x + r.w - 14, y2 + 30, { align: 'right', font: 'bold 11px Georgia' });
     }
   }
 
@@ -548,22 +553,22 @@
   function drawItemsTab(a, r) {
     tabHeader(r, 'АМУНИЦИЯ', 'в сумке: ' + a.inventory.length + ' · ' + a.gold + ' зол.');
 
-    const cw = 192, ch = 50, gapX = 6, gapY = 4;
+    const cw = 250, ch = 62, gapX = 10, gapY = 8;
     Models.ITEMS.forEach(function (item, i) {
       const col = i % 3, row = Math.floor(i / 3);
       const x = r.x + col * (cw + gapX);
-      const y = r.y + 24 + row * (ch + gapY);
+      const y = r.y + 28 + row * (ch + gapY);
       const owned = inventoryCount(a, item.id);
       const affordable = a.gold >= item.price;
 
       noteCard(x, y, cw, ch, { onClick: function () { buyItem(item); } });
 
-      Renderer.ink(item.name, x + 8, y + 15, { font: 'bold 8.5px Georgia' });
-      Renderer.text(item.desc, x + 8, y + 27, { color: T.inkSoft, font: '7px system-ui' });
-      Renderer.ink(item.price + ' зол.', x + 8, y + 41,
-        { font: 'bold 8px Georgia', color: affordable ? '#2a1c10' : '#7a1f1f' });
+      Renderer.ink(item.name, x + 10, y + 18, { font: 'bold 10px Georgia' });
+      Renderer.text(item.desc, x + 10, y + 34, { color: T.inkSoft, font: '8px system-ui' });
+      Renderer.ink(item.price + ' зол.', x + 10, y + 52,
+        { font: 'bold 9px Georgia', color: affordable ? '#2a1c10' : '#7a1f1f' });
       if (owned > 0) {
-        Renderer.text('×' + owned, x + cw - 8, y + 15, { color: '#3f6b2a', align: 'right', font: 'bold 9px Georgia' });
+        Renderer.text('×' + owned, x + cw - 10, y + 18, { color: '#3f6b2a', align: 'right', font: 'bold 11px Georgia' });
       }
     });
   }
@@ -576,21 +581,21 @@
 
   // ── Нижняя панель ────────────────────────────────────────────────────────
   function drawBottom(a) {
-    Renderer.note(10, DAY_Y, 158, DAY_H, { pin: false });
-    Renderer.ink('ПОДСКАЗКА', 20, DAY_Y + 12, { font: 'bold 8px Georgia' });
-    Renderer.text(nextStepHint(a), 20, DAY_Y + 27, { color: T.inkSoft, font: '8.5px Georgia' });
+    Renderer.note(24, DAY_Y, 260, DAY_H, { pin: false });
+    Renderer.ink('ПОДСКАЗКА', 34, DAY_Y + 16, { font: 'bold 10px Georgia' });
+    Renderer.text(nextStepHint(a, currentTab), 34, DAY_Y + 34, { color: T.inkSoft, font: '11px Georgia' });
 
     const lastDay = a.day >= a.maxDays;
-    button(178, DAY_Y, 266, DAY_H,
+    button(W/2 - 220, DAY_Y, 440, DAY_H,
       (lastDay ? 'ФИНАЛЬНЫЙ ТЕНДЕР' : 'ЗАКОНЧИТЬ ДЕНЬ') + ' · ' + a.day + '/' + a.maxDays,
-      function () { setState('endday'); }, { font: 'bold 12px Georgia' });
+      function () { setState('endday'); }, { font: 'bold 14px Georgia' });
 
-    Renderer.note(452, DAY_Y, 178, DAY_H, { pin: false });
+    Renderer.note(W - 284, DAY_Y, 260, DAY_H, { pin: false });
     Renderer.ink('СВОБОДНЫ: ' + a.monsters.filter(function (m) { return m.status === 'idle'; }).length +
-      ' · В СУМКЕ: ' + a.inventory.length, 462, DAY_Y + 14, { font: 'bold 8px Georgia' });
+      ' · СУМКА: ' + a.inventory.length + ' предм.', W - 274, DAY_Y + 18, { font: 'bold 10px Georgia' });
     Renderer.text('Угроза ' + Models.threatLabel(a.threat) + ' · перехват ' +
-      Math.round(Models.interceptChance(a) * 100) + '%', 462, DAY_Y + 28,
-      { color: T.inkSoft, font: '7.5px Georgia' });
+      Math.round(Models.interceptChance(a) * 100) + '%', W - 274, DAY_Y + 38,
+      { color: T.inkSoft, font: '10px Georgia' });
 
     const tabs = [
       { id: 'hire', label: 'НАЙМ', badge: a.interviewsLeft + '/3' },
@@ -598,9 +603,11 @@
       { id: 'shop', label: 'МАГАЗИН', badge: '' },
       { id: 'items', label: 'АМУНИЦИЯ', badge: String(a.inventory.length) }
     ];
-    const bw = 148, gap = 6;
+    const bw = 260, gap = 12;
+    const totalTabs = tabs.length * (bw + gap) - gap;
+    const tabStartX = (W - totalTabs) / 2;
     tabs.forEach(function (t, i) {
-      const x = 12 + i * (bw + gap);
+      const x = tabStartX + i * (bw + gap);
       const active = currentTab === t.id;
       const hovered = hoverRect(x, NAV_Y, bw, NAV_H);
 
@@ -611,11 +618,11 @@
       } else if (hovered) {
         Renderer.roundRectStroke(x, NAV_Y, bw, NAV_H, 3, 'rgba(216,185,106,0.65)', 1.5);
       }
-      Renderer.text(t.label, x + bw / 2, NAV_Y + 27,
-        { color: active ? '#f3e0b0' : '#cbb98f', align: 'center', font: 'bold 12px Georgia' });
+      Renderer.text(t.label, x + bw / 2, NAV_Y + 32,
+        { color: active ? '#f3e0b0' : '#cbb98f', align: 'center', font: 'bold 14px Georgia' });
       if (t.badge) {
-        Renderer.text(t.badge, x + bw - 8, NAV_Y + 13,
-          { color: active ? '#f3e0b0' : '#8f7f63', align: 'right', font: 'bold 8px Georgia' });
+        Renderer.text(t.badge, x + bw - 10, NAV_Y + 16,
+          { color: active ? '#f3e0b0' : '#8f7f63', align: 'right', font: 'bold 10px Georgia' });
       }
 
       addArea(x, NAV_Y, bw, NAV_H, function () {
@@ -625,13 +632,27 @@
     });
   }
 
-  function nextStepHint(a) {
-    if (a.interviewsLeft > 0 && a.monsters.length < Models.rosterCap(a) && a.candidates.length) {
-      return 'Наймите монстра';
+  function nextStepHint(a, tabId) {
+    if (tabId === 'hire') {
+      if (a.interviewsLeft > 0 && a.monsters.length < Models.rosterCap(a) && a.candidates.length)
+        return 'Нанять монстра: собеседование + золото';
+      if (a.interviewsLeft <= 0) return 'Собеседования закончились — завершите день';
+      return 'Стойла переполнены — наймите нежить в магазине или увольте монстра';
     }
-    if (a.quests.some(function (q) { return !q.intercepted; })) {
-      return 'Отправьте на заказ';
+    if (tabId === 'quests') {
+      if (a.quests.some(function (q) { return !q.intercepted; })) return 'Выберите заказ и монстра, затем отправьте';
+      return 'Все заказы выполнены — завершите день';
     }
+    if (tabId === 'shop') {
+      if (a.gold >= 150 && a.monsters.length < Models.rosterCap(a)) return 'Купить улучшение или нанять нежить';
+      return 'Купить улучшение за золото';
+    }
+    if (tabId === 'items') {
+      if (a.inventory.length) return 'Нажмите предмет в сумке, чтобы надеть или применить';
+      return 'Сумка пуста — покупайте экипировку в магазине';
+    }
+    if (a.interviewsLeft > 0 && a.candidates.length) return 'Наймите монстра';
+    if (a.quests.some(function (q) { return !q.intercepted; })) return 'Отправьте на заказ';
     return 'Завершите день';
   }
 
@@ -658,33 +679,33 @@
     hitAreas.length = 0;
     Renderer.rect(0, 0, W, H, 'rgba(6,4,2,0.8)');
 
-    const x = 40, y = 46, w = 560, h = 386;
-    Renderer.paper(x, y, w, h, { r: 6, burn: 14 });
-    Renderer.corners(x + 5, y + 5, w - 10, h - 10, 'rgba(120,80,30,0.4)');
+    const x = 60, y = 80, w = 1160, h = 540;
+    Renderer.paper(x, y, w, h, { r: 8, burn: 18 });
+    Renderer.corners(x + 8, y + 8, w - 16, h - 16, 'rgba(120,80,30,0.4)');
 
-    Renderer.drawMonsterIcon('mon_' + m.speciesKey, x + 24, y + 24, 96);
-    Renderer.ink(m.name, x + 136, y + 52, { font: 'bold 22px Georgia' });
+    Renderer.drawMonsterIcon('mon_' + m.speciesKey, x + 30, y + 30, 128);
+    Renderer.ink(m.name, x + 180, y + 64, { font: 'bold 28px Georgia' });
     const st = STATUS_LABELS[m.status] || STATUS_LABELS.injured;
-    Renderer.text('[' + m.speciesLabel + '] · ' + st.text, x + 136, y + 72,
-      { color: st.color, font: 'bold 9px Georgia' });
+    Renderer.text('[' + m.speciesLabel + '] · ' + st.text, x + 180, y + 90,
+      { color: st.color, font: 'bold 11px Georgia' });
     Renderer.text('Черта: ' + m.traits[0] + ' — ' + (Content.TRAIT_INFO[m.traits[0]] || ''),
-      x + 136, y + 90, { color: T.inkSoft, font: 'italic 9px Georgia' });
-    Renderer.text('Предпочтение: скрыто · заданий: ' + m.missions + ' · оверкиллов: ' + m.overkillCount,
-      x + 136, y + 106, { color: '#7a6244', font: '8px system-ui' });
+      x + 180, y + 112, { color: T.inkSoft, font: 'italic 11px Georgia' });
+    Renderer.text('Предпочтение: ' + m.preference + ' · заданий: ' + m.missions + ' · оверкиллов: ' + m.overkillCount,
+      x + 180, y + 132, { color: '#7a6244', font: '10px system-ui' });
 
     const stats = [['СИЛА', m.stats.str, 'str'], ['ЛОВКОСТЬ', m.stats.agi, 'agi'],
       ['ИНТЕЛЛЕКТ', m.stats.int, 'int'], ['УДАЧА', m.stats.luck, 'luck']];
     stats.forEach(function (s, i) {
-      const sx = x + 24 + i * 128;
+      const sx = x + 30 + i * 280;
       const bonus = Models.itemBonus(m, s[2]);
-      Renderer.text(s[0], sx, y + 140, { color: T.inkSoft, font: '8px system-ui' });
-      Renderer.ink(String(s[1]) + (bonus ? ' (+' + bonus + ')' : ''), sx, y + 162,
-        { font: 'bold 16px Georgia', color: bonus ? '#3f6b2a' : undefined });
+      Renderer.text(s[0], sx, y + 174, { color: T.inkSoft, font: '10px system-ui' });
+      Renderer.ink(String(s[1]) + (bonus ? ' (+' + bonus + ')' : ''), sx, y + 200,
+        { font: 'bold 20px Georgia', color: bonus ? '#3f6b2a' : undefined });
     });
 
-    Renderer.ink('ЭКИПИРОВКА', x + 24, y + 196, { font: 'bold 9px Georgia' });
+    Renderer.ink('ЭКИПИРОВКА', x + 30, y + 240, { font: 'bold 11px Georgia' });
     ['weapon', 'armor', 'amulet'].forEach(function (slot, i) {
-      const sx = x + 24 + i * 174, sy = y + 206, sw = 164, sh = 42;
+      const sx = x + 30 + i * 380, sy = y + 254, sw = 360, sh = 50;
       const itemId = m.equipment ? m.equipment[slot] : null;
       const item = Models.getItem(itemId);
 
@@ -693,26 +714,34 @@
         selected: !!item,
         onClick: item ? function () { unequip(m, slot); } : null
       });
-      Renderer.text(SLOT_LABELS[slot], sx + 8, sy + 13, { color: '#7a6244', font: '7px system-ui' });
-      Renderer.ink(item ? item.name : '— пусто —', sx + 8, sy + 30,
-        { font: 'bold 9px Georgia', color: item ? undefined : '#8a7355' });
-      if (item) Renderer.text('снять', sx + sw - 8, sy + 30, { color: '#7a1f1f', align: 'right', font: '7px system-ui' });
+      Renderer.text(SLOT_LABELS[slot], sx + 10, sy + 16, { color: '#7a6244', font: '8px system-ui' });
+      Renderer.ink(item ? item.name : '— пусто —', sx + 10, sy + 36,
+        { font: 'bold 11px Georgia', color: item ? undefined : '#8a7355' });
+      if (item) {
+        const bonusText = Object.entries(item.bonus || {}).map(function (e) {
+          var labels = { str: 'СИЛ', agi: 'ЛОВ', int: 'ИНТ', luck: 'УДА' };
+          return '+' + e[1] + ' ' + (labels[e[0]] || e[0]);
+        }).join(' · ');
+        Renderer.text((bonusText ? bonusText + ' · ' : '') + (item.injuryMod < 0 ? Math.round(item.injuryMod * -100) + '% к травме' : item.desc || ''), sx + 10, sy + 50,
+          { color: '#3f6b2a', align: 'left', font: 'bold 8px system-ui' });
+        Renderer.text('снять', sx + sw - 10, sy + 36, { color: '#7a1f1f', align: 'right', font: '8px system-ui' });
+      }
     });
 
-    Renderer.ink('СУМКА', x + 24, y + 268, { font: 'bold 9px Georgia' });
+    Renderer.ink('СУМКА', x + 30, y + 330, { font: 'bold 11px Georgia' });
     const bag = {};
     a.inventory.forEach(function (id) { bag[id] = (bag[id] || 0) + 1; });
     const bagIds = Object.keys(bag);
     if (!bagIds.length) {
-      Renderer.text('Пусто. Экипировка покупается в «Амуниции».', x + 24, y + 290,
-        { color: T.inkSoft, font: '9px Georgia' });
+      Renderer.text('Пусто. Экипировка покупается в «Амуниции».', x + 30, y + 354,
+        { color: T.inkSoft, font: '11px Georgia' });
     }
 
-    bagIds.slice(0, 8).forEach(function (id, i) {
+    bagIds.slice(0, 12).forEach(function (id, i) {
       const item = Models.getItem(id);
       if (!item) return;
-      const col = i % 4, row = Math.floor(i / 4);
-      const bx = x + 24 + col * 128, by = y + 278 + row * 42, bw = 120, bh = 36;
+      const col = i % 6, row = Math.floor(i / 6);
+      const bx = x + 30 + col * 190, by = y + 340 + row * 52, bw = 180, bh = 46;
 
       noteCard(bx, by, bw, bh, {
         pin: false,
@@ -721,18 +750,26 @@
           else equipItem(m, id);
         }
       });
-      Renderer.ink(item.name + (bag[id] > 1 ? ' ×' + bag[id] : ''), bx + 7, by + 14, { font: 'bold 8px Georgia' });
-      Renderer.text(item.type === 'consumable' ? 'применить' : 'надеть', bx + 7, by + 28,
-        { color: item.type === 'consumable' ? '#8a4a12' : '#3f6b2a', font: '7px system-ui' });
+      Renderer.ink(item.name + (bag[id] > 1 ? ' ×' + bag[id] : ''), bx + 10, by + 18, { font: 'bold 10px Georgia' });
+      Renderer.text(item.type === 'consumable' ? 'применить' : 'надеть', bx + 10, by + 36,
+        { color: item.type === 'consumable' ? '#8a4a12' : '#3f6b2a', font: '8px system-ui' });
     });
 
-    if (bagIds.length > 8) {
-      Renderer.text('и ещё ' + (bagIds.length - 8) + ' вид(ов)', x + w - 24, y + 268,
-        { color: T.inkSoft, align: 'right', font: '8px Georgia' });
+    if (bagIds.length > 12) {
+      Renderer.text('и ещё ' + (bagIds.length - 12) + ' вид(ов)', x + w - 30, y + 330,
+        { color: T.inkSoft, align: 'right', font: '10px Georgia' });
     }
 
-    button(x + w - 130, y + h - 46, 110, 32, 'НАЗАД', function () { setState('agency'); },
-      { variant: 'ghost', font: 'bold 10px Georgia' });
+    button(x + w - 160, y + h - 60, 140, 40, 'НАЗАД', function () { setState('agency'); },
+      { variant: 'ghost', font: 'bold 12px Georgia' });
+
+    if (m.status === 'idle') {
+      button(x + 30, y + h - 60, 140, 40, 'УВОЛЬНИТЬ', function () {
+        const res = Models.fireMonster(Game.agency, m.id);
+        if (res.success) { Audio.playSfx('reject'); showToast(res.name + ' уволен.'); setState('agency'); }
+        else { Audio.playSfx('reject'); showToast(res.reason); }
+      }, { variant: 'danger', font: 'bold 12px Georgia' });
+    }
   }
 
   function equipItem(m, id) {
@@ -765,23 +802,26 @@
     Renderer.grime(W, H, 0.6);
 
     const p = 1 - Math.max(0, missionTimer) / 2.0;
-    const x = 200 + p * 240;
+    const x = W/2 + (p - 1) * 320;
 
-    Renderer.text('ЗАДАНИЕ В РАБОТЕ', 320, 120, { color: '#d8b96a', align: 'center', font: 'bold 13px Georgia' });
-    Renderer.text(r.questTitle, 320, 148, { color: '#efe2c0', align: 'center', font: 'bold 15px Georgia' });
-    Renderer.text('Монстр ушёл и не отвечает на письма…', 320, 174,
-      { color: '#a08a63', align: 'center', font: '10px Georgia' });
+    Renderer.text('ЗАДАНИЕ В РАБОТЕ', W/2, 160, { color: '#d8b96a', align: 'center', font: 'bold 18px Georgia' });
+    Renderer.text(r.questTitle, W/2, 200, { color: '#efe2c0', align: 'center', font: 'bold 20px Georgia' });
+    Renderer.text('Монстр ушёл и не отвечает на письма…', W/2, 240,
+      { color: '#a08a63', align: 'center', font: '14px Georgia' });
 
     if (m) {
-      Renderer.drawMonsterIcon('mon_' + m.speciesKey, x, 218, 64);
-      Renderer.text(m.name, x + 32, 304, { color: '#efe2c0', align: 'center', font: 'bold 11px Georgia' });
+      Renderer.drawMonsterIcon('mon_' + m.speciesKey, x, 290, 100);
+      Renderer.text(m.name, x + 50, 410, { color: '#efe2c0', align: 'center', font: 'bold 16px Georgia' });
     }
 
-    Renderer.roundRect(140, 340, 360, 5, 2.5, '#2a1c10');
-    Renderer.roundRect(140, 340, Math.max(4, 360 * p), 5, 2.5, '#c9a227');
+    const barW = 760;
+    const barX = W/2 - barW/2;
+    const barY = H - 200;
+    Renderer.roundRect(barX, barY, barW, 8, 4, '#2a1c10');
+    Renderer.roundRect(barX, barY, Math.max(6, barW * p), 8, 4, '#c9a227');
 
-    Renderer.text('Чем закончится — узнаем из докладной.', 320, 380,
-      { color: '#7a6244', align: 'center', font: '9px Georgia' });
+    Renderer.text('Чем закончится — узнаем из докладной.', W/2, barY + 28,
+      { color: '#7a6244', align: 'center', font: '11px Georgia' });
   }
 
   // ── Отчёт ────────────────────────────────────────────────────────────────
@@ -793,35 +833,35 @@
     Renderer.rect(0, 0, W, H, 'rgba(6,4,2,0.86)');
     if (!r) return;
 
-    const x = 40, y = 46, w = 560, h = 376;
-    Renderer.paper(x, y, w, h, { r: 6, burn: 16 });
-    Renderer.corners(x + 5, y + 5, w - 10, h - 10, 'rgba(120,80,30,0.4)');
+    const x = 80, y = 80, w = 1120, h = 540;
+    Renderer.paper(x, y, w, h, { r: 8, burn: 20 });
+    Renderer.corners(x + 8, y + 8, w - 16, h - 16, 'rgba(120,80,30,0.4)');
 
-    Renderer.note(x + 26, y + 18, 64, 64, { pin: false });
-    Renderer.drawMonsterIcon('mon_' + r.speciesKey, x + 28, y + 20, 60);
+    Renderer.note(x + 32, y + 24, 80, 80, { pin: false });
+    Renderer.drawMonsterIcon('mon_' + r.speciesKey, x + 36, y + 28, 72);
 
-    Renderer.ink('ДОКЛАДНАЯ', x + 104, y + 38, { font: 'bold 12px Georgia' });
-    Renderer.text('от ' + r.monsterName + ' · ' + r.speciesLabel, x + 104, y + 56,
-      { color: T.inkSoft, font: '10px Georgia' });
-    Renderer.text('Задание: ' + r.questTitle, x + 104, y + 74,
-      { color: '#6b4a18', font: 'italic 10px Georgia' });
-    Renderer.text('День ' + a.day, x + w - 26, y + 34, { color: '#7a6244', align: 'right', font: '9px Georgia' });
-    Renderer.rect(x + 26, y + 88, w - 52, 1, 'rgba(90,60,25,0.4)');
+    Renderer.ink('ДОКЛАДНАЯ', x + 132, y + 48, { font: 'bold 16px Georgia' });
+    Renderer.text('от ' + r.monsterName + ' · ' + r.speciesLabel, x + 132, y + 72,
+      { color: T.inkSoft, font: '13px Georgia' });
+    Renderer.text('Задание: ' + r.questTitle, x + 132, y + 94,
+      { color: '#6b4a18', font: 'italic 13px Georgia' });
+    Renderer.text('День ' + a.day, x + w - 32, y + 42, { color: '#7a6244', align: 'right', font: '12px Georgia' });
+    Renderer.rect(x + 32, y + 112, w - 64, 1, 'rgba(90,60,25,0.4)');
 
-    const font = 'italic 18px Georgia';
+    const font = 'italic 24px Georgia';
     const full = '«' + r.reportText + '»';
-    const lines = Renderer.wrapText(full, w - 100, font);
+    const lines = Renderer.wrapText(full, w - 120, font);
     const visible = Math.min(full.length, Math.floor(reportTime * 45));
     let remaining = visible;
     lines.forEach(function (line, i) {
       const take = Math.max(0, Math.min(line.length, remaining));
       remaining -= take;
-      Renderer.ink(line.slice(0, take), x + 50, y + 124 + i * 28, { font: font });
+      Renderer.ink(line.slice(0, take), x + 60, y + 160 + i * 36, { font: font });
     });
 
     if (r.lied && r.int <= 7 && visible >= full.length) {
       if (Math.sin(reportTime * 9) > 0.4) {
-        Renderer.rect(x + 34, y + 106, w - 68, lines.length * 28, 'rgba(216,196,154,0.45)');
+        Renderer.rect(x + 42, y + 140, w - 84, lines.length * 36, 'rgba(216,196,154,0.45)');
       }
     }
 
@@ -829,34 +869,34 @@
       const p = Math.min(1, reportTime / 1.2);
       for (let i = 0; i < 24; i++) {
         const ang = (i / 24) * Math.PI * 2;
-        const dist = 20 + p * 90 + (i % 5) * 6;
-        Renderer.rect(320 + Math.cos(ang) * dist, 224 + Math.sin(ang) * dist * 0.55, 3, 3,
+        const dist = 30 + p * 120 + (i % 5) * 8;
+        Renderer.rect(x + w/2 + Math.cos(ang) * dist, y + 280 + Math.sin(ang) * dist * 0.55, 4, 4,
           i % 3 === 0 ? '#8a4a12' : '#8a6d1a');
       }
-      Renderer.text('МОНСТР ПЕРЕСТАРАЛСЯ', x + 26, y + 250, { color: '#8a4a12', font: 'bold 10px Georgia' });
+      Renderer.text('МОНСТР ПЕРЕСТАРАЛСЯ', x + 32, y + 320, { color: '#8a4a12', font: 'bold 13px Georgia' });
     }
 
-    const sealX = x + 92, sealY = y + 268;
+    const sealX = x + 120, sealY = y + 350;
     Renderer.ctx.save();
     Renderer.ctx.globalAlpha = 0.8;
-    Renderer.roundRect(sealX - 24, sealY - 24, 48, 48, 24, '#6e1a1a');
-    Renderer.roundRectStroke(sealX - 24, sealY - 24, 48, 48, 24, '#3f0f0f', 2);
-    Renderer.text('АГ', sealX, sealY + 5, { color: '#e8b4a0', align: 'center', font: 'bold 14px Georgia' });
+    Renderer.roundRect(sealX - 30, sealY - 30, 60, 60, 30, '#6e1a1a');
+    Renderer.roundRectStroke(sealX - 30, sealY - 30, 60, 60, 30, '#3f0f0f', 3);
+    Renderer.text('АГ', sealX, sealY + 7, { color: '#e8b4a0', align: 'center', font: 'bold 18px Georgia' });
     Renderer.ctx.restore();
-    Renderer.text('Печать агентства', x + 130, sealY + 4, { color: '#6b4a18', font: 'italic 9px Georgia' });
+    Renderer.text('Печать агентства', x + 165, sealY + 6, { color: '#6b4a18', font: 'italic 11px Georgia' });
 
-    Renderer.rect(x + 26, y + 306, w - 52, 1, 'rgba(90,60,25,0.4)');
+    Renderer.rect(x + 32, y + 398, w - 64, 1, 'rgba(90,60,25,0.4)');
 
     const trust = Math.round(r.honesty * 100);
     const trustColor = trust >= 80 ? '#3f6b2a' : (trust >= 40 ? '#8a6d1a' : '#7a1f1f');
-    Renderer.text('Интеллект ' + r.int + ' — доверять на ' + trust + '%', x + 26, y + 328,
-      { color: trustColor, font: 'bold 10px Georgia' });
-    Renderer.text('Отчёт пишет сам монстр. Он может ошибаться — или врать.',
-      x + 26, y + 344, { color: '#7a6244', font: '9px Georgia' });
+    Renderer.text('Интеллект ' + r.int + ' — честность отчёта ' + trust + '%', x + 32, y + 424,
+      { color: trustColor, font: 'bold 13px Georgia' });
+    Renderer.text('Отчёт пишет сам монстр. Чем выше интеллект, тем чаще он говорит правду.',
+      x + 32, y + 444, { color: '#7a6244', font: '11px Georgia' });
 
     if (reportTime > 0.9) {
-      button(x + w - 180, y + h - 48, 156, 32, 'ПРИНЯТЬ ОТЧЁТ', acceptReport,
-        { variant: 'ghost', font: 'bold 10px Georgia' });
+      button(x + w - 220, y + h - 60, 190, 40, 'ПРИНЯТЬ ОТЧЁТ', acceptReport,
+        { variant: 'ghost', font: 'bold 13px Georgia' });
     }
   }
 
@@ -882,13 +922,13 @@
     Renderer.drawImage('bg_agency', 0, 0, W, H);
     Renderer.rect(0, 0, W, H, 'rgba(6,4,2,0.88)');
 
-    const x = 40, y = 44, w = 560, h = 356;
-    Renderer.paper(x, y, w, h, { r: 6, burn: 14 });
-    Renderer.corners(x + 5, y + 5, w - 10, h - 10, 'rgba(120,80,30,0.4)');
+    const x = 60, y = 60, w = 1160, h = 580;
+    Renderer.paper(x, y, w, h, { r: 8, burn: 18 });
+    Renderer.corners(x + 8, y + 8, w - 16, h - 16, 'rgba(120,80,30,0.4)');
 
-    Renderer.ink('КОНЕЦ ДНЯ ' + a.day, x + w / 2, y + 34, { align: 'center', font: 'bold 20px Georgia' });
+    Renderer.ink('КОНЕЦ ДНЯ ' + a.day, x + w / 2, y + 42, { align: 'center', font: 'bold 26px Georgia' });
     Renderer.text('Золото начислено только сейчас — докладные могли врать.',
-      x + w / 2, y + 52, { color: T.inkSoft, align: 'center', font: '9px Georgia' });
+      x + w / 2, y + 66, { color: T.inkSoft, align: 'center', font: '12px Georgia' });
 
     const cells = [
       ['ЗАДАНИЙ', a.dayStats.questsDone],
@@ -897,39 +937,39 @@
       ['ПОТЕРЯНО', a.dayStats.losses]
     ];
     cells.forEach(function (c, i) {
-      const cx = x + 40 + i * 128;
-      Renderer.text(c[0], cx, y + 78, { color: T.inkSoft, font: '7px system-ui' });
-      Renderer.ink(String(c[1]), cx, y + 102, { font: 'bold 17px Georgia' });
+      const cx = x + 60 + i * 280;
+      Renderer.text(c[0], cx, y + 100, { color: T.inkSoft, font: '9px system-ui' });
+      Renderer.ink(String(c[1]), cx, y + 132, { font: 'bold 24px Georgia' });
     });
 
-    Renderer.rect(x + 26, y + 114, w - 52, 1, 'rgba(90,60,25,0.35)');
-    Renderer.ink('РЕЗУЛЬТАТЫ МИССИЙ', x + 26, y + 132, { font: 'bold 8px Georgia' });
+    Renderer.rect(x + 32, y + 150, w - 64, 1, 'rgba(90,60,25,0.35)');
+    Renderer.ink('РЕЗУЛЬТАТЫ МИССИЙ', x + 32, y + 170, { font: 'bold 11px Georgia' });
 
     if (!a.dayStats.missions.length) {
-      Renderer.text('Сегодня никто не выходил на задания.', x + 26, y + 154,
-        { color: '#7a6244', font: '9px Georgia' });
+      Renderer.text('Сегодня никто не выходил на задания.', x + 32, y + 198,
+        { color: '#7a6244', font: '12px Georgia' });
     }
 
-    a.dayStats.missions.slice(-6).forEach(function (m, i) {
-      const my = y + 150 + i * 21;
+    a.dayStats.missions.slice(-10).forEach(function (m, i) {
+      const my = y + 188 + i * 28;
       const info = MISSION_LABELS[m.type] || { text: m.type, color: T.ink };
-      Renderer.text('• ' + m.monsterName + ' — ' + m.questTitle, x + 26, my,
-        { color: T.ink, font: '9px Georgia' });
-      Renderer.text(info.text + (m.gold ? ' (+' + m.gold + ')' : ''), x + w - 30, my,
-        { color: info.color, align: 'right', font: 'bold 9px Georgia' });
+      Renderer.text('• ' + m.monsterName + ' — ' + m.questTitle, x + 32, my,
+        { color: T.ink, font: '12px Georgia' });
+      Renderer.text(info.text + (m.gold ? ' (+' + m.gold + ')' : ''), x + w - 40, my,
+        { color: info.color, align: 'right', font: 'bold 12px Georgia' });
     });
 
     const stage = Models.threatStage(a.threat);
     Renderer.text('Угроза: ' + Models.threatLabel(a.threat) + ' (' + Math.round(a.threat * 100) + '%)' +
       ' · перехват ' + Math.round(Models.interceptChance(a) * 100) + '%',
-      x + 26, y + 290, { color: STAGE_INK[stage], font: 'bold 10px Georgia' });
+      x + 32, y + 460, { color: STAGE_INK[stage], font: 'bold 13px Georgia' });
     Renderer.text(a.upgrades.intel > 0 ? 'Отдел разведки работает.' : 'Без отдела разведки конкуренты смелее.',
-      x + 26, y + 305, { color: T.inkSoft, font: '9px Georgia' });
+      x + 32, y + 484, { color: T.inkSoft, font: '11px Georgia' });
 
     const lastDay = a.day >= a.maxDays;
-    button(x + w / 2 - 130, y + h - 48, 260, 34,
+    button(x + w / 2 - 160, y + h - 70, 320, 44,
       lastDay ? 'ФИНАЛЬНЫЙ ТЕНДЕР' : 'СЛЕДУЮЩИЙ ДЕНЬ',
-      handleEndDayButton, { font: 'bold 11px Georgia' });
+      handleEndDayButton, { font: 'bold 14px Georgia' });
   }
 
   function handleEndDayButton() {
@@ -988,59 +1028,61 @@
 
     drawTenderBackdrop();
 
-    Renderer.text('ФИНАЛЬНЫЙ ТЕНДЕР', 320, 34, { align: 'center', font: 'bold 22px Georgia', color: '#d8b96a' });
-    Renderer.text('«' + Content.TENDER_TEXT.intro + '»', 320, 52,
-      { color: '#a08a63', align: 'center', font: 'italic 9px Georgia' });
+    Renderer.text('ФИНАЛЬНЫЙ ТЕНДЕР', W/2, 50, { align: 'center', font: 'bold 28px Georgia', color: '#d8b96a' });
+    Renderer.text('«' + Content.TENDER_TEXT.intro + '»', W/2, 80,
+      { color: '#a08a63', align: 'center', font: 'italic 11px Georgia' });
 
-    Renderer.paper(70, 62, 500, 46, { r: 4, burn: 8 });
-    Renderer.ink(tender.quest.title, 86, 82, { font: 'bold 11px Georgia' });
+    Renderer.paper(W/2 - 420, 100, 840, 60, { r: 6, burn: 10 });
+    Renderer.ink(tender.quest.title, W/2, 130, { align: 'center', font: 'bold 15px Georgia' });
     Renderer.text('Сложность 8 · победит тот, чей отчёт убедительнее (статы, интеллект, предпочтения)',
-      86, 98, { color: T.inkSoft, font: '8px Georgia' });
-    Renderer.drawIcon('quest_citadel', 526, 66, 36, 36, { label: 'Ц', color: '#3a2a1a' });
+      W/2, 152, { color: T.inkSoft, align: 'center', font: '11px Georgia' });
+    Renderer.drawIcon('quest_citadel', W/2 + 400, 106, 52, 52, { label: 'Ц', color: '#3a2a1a' });
 
-    Renderer.paper(24, 120, 292, 200, { r: 4, burn: 10 });
-    Renderer.ink('ГЕРОЙ-ДИРЕКТОР', 40, 142, { font: 'bold 11px Georgia' });
-    Renderer.text(tender.aiAgency, 40, 157, { color: T.inkSoft, font: '8px Georgia' });
+    // Left panel - AI Agency
+    Renderer.paper(40, 180, 560, 420, { r: 6, burn: 12 });
+    Renderer.ink('ГЕРОЙ-ДИРЕКТОР', 60, 210, { font: 'bold 15px Georgia' });
+    Renderer.text(tender.aiAgency, 60, 235, { color: T.inkSoft, font: '11px Georgia' });
 
     const ai = tender.aiChampion;
-    Renderer.drawMonsterIcon('mon_' + ai.speciesKey, 40, 168, 48);
-    Renderer.ink(ai.name, 100, 186, { font: 'bold 13px Georgia' });
-    Renderer.text('[' + ai.speciesLabel + '] ИНТ ' + ai.stats.int, 100, 203,
-      { color: T.inkSoft, font: '9px monospace' });
+    Renderer.drawMonsterIcon('mon_' + ai.speciesKey, 60, 255, 72);
+    Renderer.ink(ai.name, 150, 285, { font: 'bold 17px Georgia' });
+    Renderer.text('[' + ai.speciesLabel + '] ИНТ ' + ai.stats.int, 150, 315,
+      { color: T.inkSoft, font: '12px monospace' });
 
-    Renderer.text('Он выставит сильнейшего переговорщика.', 40, 236, { color: '#6b4a18', font: '8px Georgia' });
-    Renderer.text('Ваш отчёт оценивают по:', 40, 256, { color: '#6b4a18', font: '8px Georgia' });
-    Renderer.text('• сила против сложности 8', 48, 272, { color: '#6b4a18', font: '8px Georgia' });
-    Renderer.text('• честность (ИНТ 14+ / 8+ / ниже)', 48, 286, { color: '#6b4a18', font: '8px Georgia' });
-    Renderer.text('• совпадение с предпочтением', 48, 300, { color: '#6b4a18', font: '8px Georgia' });
+    Renderer.text('Он выставит сильнейшего переговорщика.', 60, 360, { color: '#6b4a18', font: '11px Georgia' });
+    Renderer.text('Ваш отчёт оценивают по:', 60, 390, { color: '#6b4a18', font: '11px Georgia' });
+    Renderer.text('• сила против сложности 8', 72, 420, { color: '#6b4a18', font: '11px Georgia' });
+    Renderer.text('• честность (ИНТ 14+ / 8+ / ниже)', 72, 450, { color: '#6b4a18', font: '11px Georgia' });
+    Renderer.text('• совпадение с предпочтением', 72, 480, { color: '#6b4a18', font: '11px Georgia' });
 
-    Renderer.paper(324, 120, 292, 200, { r: 4, burn: 10 });
-    Renderer.ink('ВАШ ЧЕМПИОН', 340, 142, { font: 'bold 11px Georgia' });
-    Renderer.text('Выберите монстра и его экипировку', 340, 157, { color: T.inkSoft, font: '8px Georgia' });
+    // Right panel - Your Champion
+    Renderer.paper(W - 600, 180, 560, 420, { r: 6, burn: 12 });
+    Renderer.ink('ВАШ ЧЕМПИОН', W - 580, 210, { font: 'bold 15px Georgia' });
+    Renderer.text('Выберите монстра и его экипировку', W - 580, 235, { color: T.inkSoft, font: '11px Georgia' });
 
-    const cw = 132, chh = 44;
+    const cw = 250, chh = 56;
     a.monsters.forEach(function (m, i) {
       const col = i % 2;
       const row = Math.floor(i / 2);
-      const x = 336 + col * (cw + 8);
-      const y = 166 + row * (chh + 4);
-      if (y + chh > 312) return;
+      const x = W - 580 + col * (cw + 16);
+      const y = 260 + row * (chh + 10);
+      if (y + chh > 580) return;
 
       noteCard(x, y, cw, chh, {
         pin: false,
         selected: tender.playerChampionId === m.id,
         onClick: function () { if (!tender.resolved) tender.playerChampionId = m.id; }
       });
-      Renderer.drawMonsterIcon('mon_' + m.speciesKey, x + 4, y + 4, chh - 8);
-      Renderer.ink(m.name, x + 44, y + 16, { font: 'bold 9px Georgia' });
-      Renderer.text('ИНТ ' + m.stats.int + ' · СИЛ ' + m.stats.str, x + 44, y + 28,
-        { color: T.inkSoft, font: '7px monospace' });
+      Renderer.drawMonsterIcon('mon_' + m.speciesKey, x + 6, y + 6, chh - 12);
+      Renderer.ink(m.name, x + chh + 10, y + 22, { font: 'bold 12px Georgia' });
+      Renderer.text('ИНТ ' + m.stats.int + ' · СИЛ ' + m.stats.str, x + chh + 10, y + 40,
+        { color: T.inkSoft, font: '10px monospace' });
       const rate = tenderRating(m, a);
-      Renderer.text(rate.text, x + 44, y + 39, { color: rate.color, font: 'bold 7px Georgia' });
+      Renderer.text(rate.text, x + chh + 10, y + 52, { color: rate.color, font: 'bold 10px Georgia' });
     });
 
     if (!tender.resolved) {
-      button(190, 330, 260, 38, 'ОТПРАВИТЬ ЛУЧШЕГО', resolveTender, { variant: 'hero', font: 'bold 11px Georgia' });
+      button(W/2 - 180, 610, 360, 56, 'ОТПРАВИТЬ ЛУЧШЕГО', resolveTender, { variant: 'hero', font: 'bold 15px Georgia' });
     } else {
       drawTenderResult();
     }
@@ -1055,7 +1097,7 @@
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
 
-    const spot = ctx.createRadialGradient(320, 90, 10, 320, 90, 280);
+    const spot = ctx.createRadialGradient(W/2, 90, 10, W/2, 90, 280);
     spot.addColorStop(0, 'rgba(168,85,247,0.28)');
     spot.addColorStop(1, 'rgba(168,85,247,0)');
     ctx.fillStyle = spot;
@@ -1063,7 +1105,7 @@
 
     ctx.fillStyle = 'rgba(30,22,42,0.92)';
     ctx.beginPath();
-    ctx.ellipse(320, 472, 300, 72, 0, 0, Math.PI * 2);
+    ctx.ellipse(W/2, H * 0.66, W * 0.47, 72, 0, 0, Math.PI * 2);
     ctx.fill();
     Renderer.grime(W, H, 0.4);
   }
@@ -1083,30 +1125,30 @@
     const res = tender.result;
 
     Renderer.rect(0, 0, W, H, 'rgba(6,4,10,0.55)');
-    Renderer.paper(50, 104, 540, 340, { r: 6, burn: 14 });
-    Renderer.corners(55, 109, 530, 330, res.win ? 'rgba(63,107,42,0.7)' : 'rgba(122,31,31,0.7)');
+    Renderer.paper(W/2 - 450, 80, 900, 520, { r: 8, burn: 18 });
+    Renderer.corners(W/2 - 445, 85, 890, 510, res.win ? 'rgba(63,107,42,0.7)' : 'rgba(122,31,31,0.7)');
 
-    Renderer.ink(res.win ? 'ВАШ ОТЧЁТ УБЕДИТЕЛЬНЕЕ' : 'ГЕРОЙ-ДИРЕКТОР УБЕДИТЕЛЬНЕЕ', 320, 134,
-      { align: 'center', font: 'bold 15px Georgia', color: res.win ? '#3f6b2a' : '#7a1f1f' });
+    Renderer.ink(res.win ? 'ВАШ ОТЧЁТ УБЕДИТЕЛЬНЕЕ' : 'ГЕРОЙ-ДИРЕКТОР УБЕДИТЕЛЬНЕЕ', W/2, 120,
+      { align: 'center', font: 'bold 20px Georgia', color: res.win ? '#3f6b2a' : '#7a1f1f' });
 
     [res.player, res.ai].forEach(function (p, i) {
-      const x = 76 + i * 250;
-      Renderer.text(i ? 'ГЕРОЙ-ДИРЕКТОР' : 'ВЫ', x, 164, { color: i ? '#6b4a18' : '#3f6b2a', font: 'bold 9px Georgia' });
-      Renderer.ink(p.name + ' · ИНТ ' + p.int, x, 181, { font: 'bold 10px Georgia' });
+      const x = W/2 - 420 + i * 440;
+      Renderer.text(i ? 'ГЕРОЙ-ДИРЕКТОР' : 'ВЫ', x, 156, { color: i ? '#6b4a18' : '#3f6b2a', font: 'bold 12px Georgia' });
+      Renderer.ink(p.name + ' · ИНТ ' + p.int, x, 178, { font: 'bold 13px Georgia' });
 
-      Renderer.wrapText('«' + p.report.text + '»', 210, 'italic 10px Georgia').slice(0, 6).forEach(function (line, j) {
-        Renderer.text(line, x, 202 + j * 14, { color: '#4a3520', font: 'italic 10px Georgia' });
+      Renderer.wrapText('«' + p.report.text + '»', 400, 'italic 13px Georgia').slice(0, 8).forEach(function (line, j) {
+        Renderer.text(line, x, 206 + j * 20, { color: '#4a3520', font: 'italic 13px Georgia' });
       });
 
-      Renderer.ink('Счёт: ' + (i ? res.aiScore : res.playerScore), x, 296, { font: 'bold 12px Georgia' });
-      Renderer.text(p.report.lied ? 'Отчёт подозрительно красивый…' : 'Отчёт выглядит честным', x, 313,
-        { color: p.report.lied ? '#8a4a12' : T.inkSoft, font: '8px Georgia' });
+      Renderer.ink('Счёт: ' + (i ? res.aiScore : res.playerScore), x, 380, { font: 'bold 16px Georgia' });
+      Renderer.text(p.report.lied ? 'Отчёт подозрительно красивый…' : 'Отчёт выглядит честным', x, 404,
+        { color: p.report.lied ? '#8a4a12' : T.inkSoft, font: '10px Georgia' });
     });
 
-    button(190, 372, 260, 38, 'ПОДВЕСТИ ИТОГ', function () {
+    button(W/2 - 160, 560, 320, 48, 'ПОДВЕСТИ ИТОГ', function () {
       outcome = { win: res.win, reason: 'tender', result: res };
       setState(res.win ? 'victory' : 'defeat');
-    }, { font: 'bold 11px Georgia' });
+    }, { font: 'bold 14px Georgia' });
   }
 
   // ── Победа / поражение ───────────────────────────────────────────────────
@@ -1122,12 +1164,12 @@
     }
     Renderer.rect(0, 0, W, H, 'rgba(5,5,8,0.35)');
 
-    const x = 70, y = 60, w = 500, h = 356;
-    Renderer.paper(x, y, w, h, { r: 6, burn: 16 });
-    Renderer.corners(x + 5, y + 5, w - 10, h - 10, win ? 'rgba(63,107,42,0.7)' : 'rgba(122,31,31,0.7)');
+    const x = W/2 - 450, y = 80, w = 900, h = 560;
+    Renderer.paper(x, y, w, h, { r: 8, burn: 20 });
+    Renderer.corners(x + 8, y + 8, w - 16, h - 16, win ? 'rgba(63,107,42,0.7)' : 'rgba(122,31,31,0.7)');
 
-    Renderer.ink(win ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ', 320, y + 52,
-      { align: 'center', font: 'bold 28px Georgia', color: win ? '#3f6b2a' : '#7a1f1f' });
+    Renderer.ink(win ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ', W/2, y + 70,
+      { align: 'center', font: 'bold 48px Georgia', color: win ? '#3f6b2a' : '#7a1f1f' });
 
     let text = win ? Content.TENDER_TEXT.win : Content.TENDER_TEXT.lose;
     if (!win && outcome && outcome.reason === 'threat') {
@@ -1137,13 +1179,13 @@
       text = 'В штате не осталось ни одного монстра. Тендер проигран без боя.';
     }
 
-    Renderer.wrapText(text, w - 80, '11px Georgia').forEach(function (line, i) {
-      Renderer.ink(line, 320, y + 86 + i * 17, { align: 'center', font: '11px Georgia' });
+    Renderer.wrapText(text, w - 100, '16px Georgia').forEach(function (line, i) {
+      Renderer.ink(line, W/2, y + 140 + i * 30, { align: 'center', font: '16px Georgia' });
     });
 
     if (outcome && outcome.result) {
       Renderer.text('Тендер: вы ' + outcome.result.playerScore + ' — герой ' + outcome.result.aiScore,
-        320, y + 146, { color: T.inkSoft, align: 'center', font: '9px Georgia' });
+        W/2, y + 240, { color: T.inkSoft, align: 'center', font: '14px Georgia' });
     }
 
     const rows = [
@@ -1155,14 +1197,14 @@
       ['Заказов перехвачено', a.stats.interceptedTotal]
     ];
     rows.forEach(function (r, i) {
-      const cy = y + 170 + i * 21;
-      Renderer.text(r[0], x + 50, cy, { color: T.inkSoft, font: '9px Georgia' });
-      Renderer.ink(String(r[1]), x + w - 50, cy, { align: 'right', font: 'bold 9px Georgia' });
+      const cy = y + 300 + i * 34;
+      Renderer.text(r[0], x + 60, cy, { color: T.inkSoft, font: '13px Georgia' });
+      Renderer.ink(String(r[1]), x + w - 60, cy, { align: 'right', font: 'bold 13px Georgia' });
     });
 
-    button(x + 36, y + h - 52, 180, 34, 'НОВАЯ ИГРА', startNewGame, { font: 'bold 10px Georgia' });
-    button(x + w - 216, y + h - 52, 180, 34, 'В МЕНЮ', function () { outcome = null; setState('menu'); },
-      { variant: 'ghost', font: 'bold 10px Georgia' });
+    button(x + 60, y + h - 70, 260, 54, 'НОВАЯ ИГРА', startNewGame, { font: 'bold 13px Georgia' });
+    button(x + w - 320, y + h - 70, 260, 54, 'В МЕНЮ', function () { outcome = null; setState('menu'); },
+      { variant: 'ghost', font: 'bold 13px Georgia' });
   }
 
   function startNewGame() {
@@ -1180,38 +1222,38 @@
     Renderer.grime(W, H, 0.55);
     Renderer.vignette(W, H, 0.6);
 
-    const x = 90, y = 62, w = 460, h = 344;
-    Renderer.paper(x, y, w, h, { r: 6, burn: 18 });
-    Renderer.corners(x + 6, y + 6, w - 12, h - 12, 'rgba(120,80,30,0.45)');
+    const x = W/2 - 450, y = 120, w = 900, h = 460;
+    Renderer.paper(x, y, w, h, { r: 8, burn: 22 });
+    Renderer.corners(x + 8, y + 8, w - 16, h - 16, 'rgba(120,80,30,0.45)');
 
-    Renderer.ink('ПОСЛЕДНИЙ', 320, y + 64, { align: 'center', font: 'bold 40px Georgia' });
-    Renderer.ink('ЧЕЛОВЕК', 320, y + 104, { align: 'center', font: 'bold 40px Georgia' });
-    Renderer.text('агентство по трудоустройству монстров', 320, y + 128,
-      { color: T.inkSoft, align: 'center', font: 'italic 10px Georgia' });
-    Renderer.rect(x + 60, y + 140, w - 120, 1, 'rgba(90,60,25,0.4)');
+    Renderer.ink('ПОСЛЕДНИЙ', W/2, y + 96, { align: 'center', font: 'bold 64px Georgia' });
+    Renderer.ink('ЧЕЛОВЕК', W/2, y + 160, { align: 'center', font: 'bold 64px Georgia' });
+    Renderer.text('агентство по трудоустройству монстров', W/2, y + 196,
+      { color: T.inkSoft, align: 'center', font: 'italic 15px Georgia' });
+    Renderer.rect(x + 100, y + 210, w - 200, 1, 'rgba(90,60,25,0.4)');
 
     const save = readSave();
-    button(220, y + 156, 200, 40, 'НОВАЯ ИГРА', function () {
+    button(W/2 - 170, y + 250, 340, 64, 'НОВАЯ ИГРА', function () {
       Game.agency = Models.createAgency();
       setState('intro');
-    }, { font: 'bold 11px Georgia' });
+    }, { font: 'bold 16px Georgia' });
 
-    button(220, y + 204, 200, 40, save ? ('ПРОДОЛЖИТЬ · день ' + save.day) : 'ПРОДОЛЖИТЬ', function () {
+    button(W/2 - 170, y + 330, 340, 64, save ? ('ПРОДОЛЖИТЬ · день ' + save.day) : 'ПРОДОЛЖИТЬ', function () {
       if (loadGame()) { currentTab = 'hire'; setState('agency'); }
       else showToast('Сохранение не найдено');
     }, {
       variant: 'ghost',
-      font: 'bold 10px Georgia',
+      font: 'bold 15px Georgia',
       disabled: !saveAvailable,
       reason: 'Пока нет сохранения'
     });
 
-    button(220, y + 252, 200, 40, 'КАК ИГРАТЬ', function () { helpFrom = 'menu'; setState('help'); },
-      { variant: 'ghost', font: 'bold 10px Georgia' });
+    button(W/2 - 170, y + 410, 340, 64, 'КАК ИГРАТЬ', function () { helpFrom = 'menu'; setState('help'); },
+      { variant: 'ghost', font: 'bold 15px Georgia' });
 
-    Renderer.text('Мышь / тап. Esc — пауза, Enter — подтвердить.', 320, y + 308,
-      { color: '#7a6244', align: 'center', font: '8px Georgia' });
-    Renderer.text('FEIS Game Jam · 2026', 320, y + 322, { color: '#8a7355', align: 'center', font: '8px Georgia' });
+    Renderer.text('Мышь / тап. Esc — пауза, Enter — подтвердить.', W/2, y + h - 36,
+      { color: '#7a6244', align: 'center', font: '11px Georgia' });
+    Renderer.text('FEIS Game Jam · 2026', W/2, y + h - 16, { color: '#8a7355', align: 'center', font: '11px Georgia' });
   }
 
   function readSave() {
@@ -1229,9 +1271,9 @@
     Renderer.rect(0, 0, W, H, 'rgba(5,3,1,0.88)');
     Renderer.grime(W, H, 0.5);
 
-    const x = 60, y = 62, w = 520, h = 350;
-    Renderer.paper(x, y, w, h, { r: 6, burn: 18 });
-    Renderer.corners(x + 6, y + 6, w - 12, h - 12, 'rgba(120,80,30,0.45)');
+    const x = W/2 - 400, y = 120, w = 800, h = 480;
+    Renderer.paper(x, y, w, h, { r: 8, burn: 22 });
+    Renderer.corners(x + 8, y + 8, w - 16, h - 16, 'rgba(120,80,30,0.45)');
 
     const lines = [
       'Герои ушли в другие измерения — качаться до бесконечности.',
@@ -1243,20 +1285,20 @@
       'и город достанется тому, чей монстр напишет убедительный отчёт.'
     ];
 
-    Renderer.ink('ПОСЛЕДНИЙ ЧЕЛОВЕК', 320, y + 52, { align: 'center', font: 'bold 26px Georgia' });
-    Renderer.rect(x + 70, y + 66, w - 140, 1, 'rgba(90,60,25,0.4)');
+    Renderer.ink('ПОСЛЕДНИЙ ЧЕЛОВЕК', W/2, y + 70, { align: 'center', font: 'bold 36px Georgia' });
+    Renderer.rect(x + 120, y + 84, w - 240, 1, 'rgba(90,60,25,0.4)');
 
     lines.forEach(function (line, i) {
       const shown = Math.min(line.length, Math.max(0, Math.floor((introTime - 0.2 - i * 0.25) * 60)));
-      Renderer.ink(line.slice(0, shown), 320, y + 106 + i * 23,
-        { align: 'center', font: i >= 5 ? '9px Georgia' : '11px Georgia' });
+      Renderer.ink(line.slice(0, shown), W/2, y + 130 + i * 32,
+        { align: 'center', font: i >= 5 ? '11px Georgia' : '14px Georgia' });
     });
 
     if (introTime > 2.2) {
-      button(220, y + h - 56, 200, 38, 'ОТКРЫТЬ АГЕНТСТВО', function () { setState('agency'); },
-        { font: 'bold 10px Georgia' });
+      button(W/2 - 180, y + h - 80, 360, 54, 'ОТКРЫТЬ АГЕНТСТВО', function () { setState('agency'); },
+        { font: 'bold 13px Georgia' });
     } else {
-      Renderer.text('клик — пропустить', 320, y + h - 24, { color: '#7a6244', align: 'center', font: '8px Georgia' });
+      Renderer.text('клик — пропустить', W/2, y + h - 30, { color: '#7a6244', align: 'center', font: '10px Georgia' });
       addArea(0, 0, W, H, function () { introTime = 3; });
     }
   }
@@ -1266,35 +1308,35 @@
     hitAreas.length = 0;
     Renderer.rect(0, 0, W, H, 'rgba(4,3,1,0.86)');
 
-    const x = 60, y = 30, w = 520, h = 420;
-    Renderer.paper(x, y, w, h, { r: 6, burn: 16 });
-    Renderer.corners(x + 6, y + 6, w - 12, h - 12, 'rgba(120,80,30,0.45)');
+    const x = W/2 - 450, y = 40, w = 900, h = 600;
+    Renderer.paper(x, y, w, h, { r: 8, burn: 20 });
+    Renderer.corners(x + 8, y + 8, w - 16, h - 16, 'rgba(120,80,30,0.45)');
 
-    Renderer.ink('КАК ИГРАТЬ', x + w / 2, y + 34, { align: 'center', font: 'bold 18px Georgia' });
-    Renderer.rect(x + 70, y + 44, w - 140, 1, 'rgba(90,60,25,0.4)');
+    Renderer.ink('КАК ИГРАТЬ', W/2, y + 44, { align: 'center', font: 'bold 24px Georgia' });
+    Renderer.rect(x + 120, y + 56, w - 240, 1, 'rgba(90,60,25,0.4)');
 
     const rows = [
-      ['1. Найм', 'У кандидата скрытое предпочтение. Найм тратит 1 из 3 попыток; отказ — тоже.'],
-      ['2. Заказы', 'Монстр выполняет одно задание в день, потом отдыхает. Сравнивайте статы.'],
-      ['3. Отчёты', 'Монстр пишет сам и может врать: ИНТ 14+ — честен, 8–13 — 50/50, ниже 8 — врёт.'],
-      ['4. Оверкилл', 'Перестарался: +50% золота, но +3% угрозы и риск травмы.'],
-      ['5. Угроза', 'Конкуренты перехватывают заказы: 10→20→30→40%. Угроза 100% — поражение.'],
-      ['6. Улучшения', 'Кузня, стойла, канализация, крипта, трензал, разведка, школа лжи.'],
-      ['7. Экипировка', 'Предметы из «Амуниции» выдаются в досье монстра (клик по портрету).'],
-      ['8. Финал', '14-й день: тендер с Героем-Директором. Побеждает убедительный отчёт.']
+      ['1. Найм', 'У кандидата скрытое предпочтение и черта. Найм тратит 1 из 3 попыток и золото; отказ — тоже тратит попытку.'],
+      ['2. Заказы', '"Рекомендуется" — подходящий вид даёт бонус к статам, но можно отправить любого монстра. Монстр выполняет одно задание в день.'],
+      ['3. Статы', 'СИЛА — физическая сила. ЛОВКОСТЬ — скорость и точность. ИНТЕЛЛЕКТ — честность отчётов. УДАЧА — шанс оверкилла и крита.'],
+      ['4. Отчёты', 'Монстр пишет сам и может врать: ИНТ 14+ — почти всегда честен, 8–13 — примерно наполовину, ниже 8 — часто врёт.'],
+      ['5. Оверкилл', 'Перестарался: +50% золота, но +3% угрозы и риск травмы.'],
+      ['6. Угроза', 'Конкуренты перехватывают заказы: чем выше угроза, тем чаще перехват. Угроза 100% — поражение.'],
+      ['7. Экипировка', 'Предметы из «Амуниции» надеваются в досье монстра (клик по портрету). У каждого предмета свои бонусы к статам.'],
+      ['8. Финал', '14-й день: тендер с Героем-Директором. Побеждает агент с более убедительным отчётом.']
     ];
 
     rows.forEach(function (r, i) {
-      const ry = y + 74 + i * 36;
-      Renderer.ink(r[0], x + 26, ry, { font: 'bold 10px Georgia' });
-      Renderer.text(r[1], x + 26, ry + 14, { color: T.inkSoft, font: '8.5px Georgia' });
+      const ry = y + 100 + i * 48;
+      Renderer.ink(r[0], x + 40, ry, { font: 'bold 13px Georgia' });
+      Renderer.text(r[1], x + 40, ry + 18, { color: T.inkSoft, font: '11px Georgia' });
     });
 
     Renderer.ink('Цель: дожить до 14-го дня и выиграть тендер у Героя-Директора.',
-      x + w / 2, y + h - 66, { align: 'center', font: '9px Georgia', color: '#6b4a18' });
+      W/2, y + h - 80, { align: 'center', font: '11px Georgia', color: '#6b4a18' });
 
-    button(x + w / 2 - 80, y + h - 48, 160, 32, 'ПОНЯТНО', closeHelp,
-      { variant: 'ghost', font: 'bold 10px Georgia' });
+    button(W/2 - 100, y + h - 60, 200, 44, 'ПОНЯТНО', closeHelp,
+      { variant: 'ghost', font: 'bold 13px Georgia' });
   }
 
   function closeHelp() {
@@ -1307,17 +1349,17 @@
     hitAreas.length = 0;
     Renderer.rect(0, 0, W, H, 'rgba(4,3,1,0.74)');
 
-    const x = 190, y = 120, w = 260, h = 240;
-    Renderer.paper(x, y, w, h, { r: 6, burn: 14 });
-    Renderer.corners(x + 6, y + 6, w - 12, h - 12, 'rgba(120,80,30,0.45)');
-    Renderer.ink('ПАУЗА', x + w / 2, y + 44, { align: 'center', font: 'bold 18px Georgia' });
+    const x = W/2 - 300, y = H/2 - 200, w = 600, h = 400;
+    Renderer.paper(x, y, w, h, { r: 8, burn: 18 });
+    Renderer.corners(x + 8, y + 8, w - 16, h - 16, 'rgba(120,80,30,0.45)');
+    Renderer.ink('ПАУЗА', W/2, y + 70, { align: 'center', font: 'bold 32px Georgia' });
 
-    button(x + 30, y + 66, 200, 36, 'ПРОДОЛЖИТЬ', function () { setState('agency'); },
-      { font: 'bold 10px Georgia' });
-    button(x + 30, y + 112, 200, 36, 'КАК ИГРАТЬ', function () { helpFrom = 'pause'; setState('help'); },
-      { variant: 'ghost', font: 'bold 10px Georgia' });
-    button(x + 30, y + 158, 200, 36, 'В МЕНЮ', function () { saveGame(); setState('menu'); },
-      { variant: 'ghost', font: 'bold 10px Georgia' });
+    button(W/2 - 180, y + 110, 360, 56, 'ПРОДОЛЖИТЬ', function () { setState('agency'); },
+      { font: 'bold 15px Georgia' });
+    button(W/2 - 180, y + 180, 360, 56, 'КАК ИГРАТЬ', function () { helpFrom = 'pause'; setState('help'); },
+      { variant: 'ghost', font: 'bold 14px Georgia' });
+    button(W/2 - 180, y + 250, 360, 56, 'В МЕНЮ', function () { saveGame(); setState('menu'); },
+      { variant: 'ghost', font: 'bold 14px Georgia' });
   }
 
   // ── Тост ─────────────────────────────────────────────────────────────────

@@ -178,15 +178,21 @@ window.Models = (function () {
   function generateCandidates(agency) {
     const rosterSpecies = agency.monsters.map(function (m) { return m.speciesKey; });
     const result = [];
-    // Ограниченное число попыток + жёсткий фолбэк: раньше цикл висел вечно,
-    // если в штате уже были все виды.
     for (let attempt = 0; attempt < 60 && result.length < 3; attempt++) {
       const c = createMonster(null, agency.upgrades.training);
       if (rosterSpecies.includes(c.speciesKey)) continue;
       if (result.some(function (x) { return x.name === c.name && x.speciesKey === c.speciesKey; })) continue;
+      // Стоимость найма: базовая 20 + 5 за каждую единицу средней статы
+      const avgStat = (c.stats.str + c.stats.agi + c.stats.int + c.stats.luck) / 4;
+      c.cost = 20 + Math.round(avgStat * 2.5);
       result.push(c);
     }
-    while (result.length < 3) result.push(createMonster(null, agency.upgrades.training));
+    while (result.length < 3) {
+      const c = createMonster(null, agency.upgrades.training);
+      const avgStat = (c.stats.str + c.stats.agi + c.stats.int + c.stats.luck) / 4;
+      c.cost = 20 + Math.round(avgStat * 2.5);
+      result.push(c);
+    }
     return result;
   }
 
@@ -251,7 +257,7 @@ window.Models = (function () {
       case 'только_лёгкие_задания':
         return { ok: board.some(function (q) { return q.difficulty <= 4; }), reason: 'Слишком опасно!' };
       case 'работает_только_один':
-        return { ok: agency.monsters.length < 2, reason: 'Не хочу делить кабинет!' };
+        return { ok: agency.monsters.length < 3, reason: 'Работаю в одиночку, не хочу напарников!' };
       case 'требует_импа':
         return { ok: has('imp'), reason: 'Позовите Импу!' };
       case 'не_работает_с_слизями':
@@ -272,10 +278,26 @@ window.Models = (function () {
     if (agency.monsters.length >= rosterCap(agency)) {
       return { success: false, consumed: false, reason: 'Нет свободных мест в стойлах' };
     }
-    // Слот собеседования тратится и при отказе (docs/balance.md §5).
+    // Стоимость найма взимается только при успешном найме (docs/balance.md §5).
+    if (agency.gold < candidate.cost) {
+      return { success: false, consumed: false, reason: 'Недостаточно золота на найм!' };
+    }
     agency.interviewsLeft--;
     const res = prefCheck(candidate.preference, agency);
-    return { success: res.ok, consumed: true, reason: res.reason };
+    if (!res.ok) {
+      return { success: false, consumed: true, reason: res.reason };
+    }
+    agency.gold -= candidate.cost;
+    return { success: true, consumed: true, reason: res.reason, cost: candidate.cost };
+  }
+
+  function fireMonster(agency, monsterId) {
+    const idx = agency.monsters.findIndex(function (m) { return m.id === monsterId; });
+    if (idx === -1) return { success: false, reason: 'Монстр не найден в штате' };
+    const m = agency.monsters[idx];
+    if (m.status !== 'idle') return { success: false, reason: 'Монстр занят на задании' };
+    agency.monsters.splice(idx, 1);
+    return { success: true, name: m.name };
   }
 
   // ── Экономика ────────────────────────────────────────────────────────────
@@ -674,6 +696,7 @@ window.Models = (function () {
     tryHire,
     buyUpgrade,
     hireUndead,
+    fireMonster,
     getItem,
     itemBonus,
     equipmentInjuryMod,
