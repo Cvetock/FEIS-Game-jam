@@ -7,11 +7,13 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #050505; color: #eee; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-  canvas { border: 1px solid #333; background: #0e0f13; max-width: 100%; max-height: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-radius: 4px; }
-  #debugBtn { position: absolute; top: 10px; right: 10px; padding: 6px 12px; background: #1f232c; color: #d6d9e0; border: 1px solid #2c313c; cursor: pointer; font-size: 13px; z-index: 10; border-radius: 4px; }
+  canvas { border: 1px solid #333; background: #0e0f13; max-width: 100%; max-height: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-radius: 4px; touch-action: none; }
+  #debugBtn { display: none; position: absolute; top: 10px; right: 10px; padding: 6px 12px; background: #1f232c; color: #d6d9e0; border: 1px solid #2c313c; cursor: pointer; font-size: 13px; z-index: 10; border-radius: 4px; }
   #debugBtn:hover { background: #2c313c; }
-  #debugPanel { position: absolute; top: 50px; right: 10px; width: 380px; max-height: 80vh; overflow: auto; background: rgba(15,17,21,0.95); color: #9cf; border: 1px solid #2c313c; padding: 10px; font-family: monospace; font-size: 11px; white-space: pre-wrap; z-index: 10; display: none; border-radius: 4px; }
-  #debugPanel.open { display: block; }
+  #debugPanel { display: none; position: absolute; top: 50px; right: 10px; width: 380px; max-height: 80vh; overflow: auto; background: rgba(15,17,21,0.95); color: #9cf; border: 1px solid #2c313c; padding: 10px; font-family: monospace; font-size: 11px; white-space: pre-wrap; z-index: 10; border-radius: 4px; }
+  /* Отладочная панель доступна только по адресу index.html?debug */
+  body.debug #debugBtn { display: block; }
+  body.debug #debugPanel.open { display: block; }
 </style>
 </head>
 <body>
