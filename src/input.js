@@ -1,40 +1,58 @@
-# Ввод: клавиатура, мышь, тач
-export const Input = {
+// Ввод: клавиатура, мышь, тач
+window.Input = {
   keys: new Set(),
-  mouse: { x: 0, y: 0, down: false },
-  touch: { x: 0, y: 0, active: false },
+  mouse: { x: 0, y: 0, down: false, clicked: false },
 
   init(element) {
     window.addEventListener('keydown', (e) => this.keys.add(e.code));
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
 
-    element.addEventListener('mousedown', () => { this.mouse.down = true; });
-    element.addEventListener('mouseup', () => { this.mouse.down = false; });
-    element.addEventListener('mousemove', (e) => {
+    // Пересчет координат: CSS-пиксели → логические 640×480 (с учётом zoom и HiDPI)
+    const getPos = (e) => {
       const rect = element.getBoundingClientRect();
-      this.mouse.x = e.clientX - rect.left;
-      this.mouse.y = e.clientY - rect.top;
+      const logicalWidth = element._logicalW || (element.width / (window.devicePixelRatio || 1));
+      const logicalHeight = element._logicalH || (element.height / (window.devicePixelRatio || 1));
+
+      return {
+        x: (e.clientX - rect.left) * (logicalWidth / rect.width),
+        y: (e.clientY - rect.top) * (logicalHeight / rect.height)
+      };
+    };
+
+    element.addEventListener('mousedown', (e) => {
+      this.mouse.down = true;
+      this.mouse.clicked = true;
+      const pos = getPos(e);
+      this.mouse.x = pos.x;
+      this.mouse.y = pos.y;
+    });
+
+    element.addEventListener('mouseup', () => { this.mouse.down = false; });
+
+    element.addEventListener('mousemove', (e) => {
+      const pos = getPos(e);
+      this.mouse.x = pos.x;
+      this.mouse.y = pos.y;
     });
 
     element.addEventListener('touchstart', (e) => {
-      this.touch.active = true;
-      const t = e.touches[0];
-      const rect = element.getBoundingClientRect();
-      this.touch.x = t.clientX - rect.left;
-      this.touch.y = t.clientY - rect.top;
-    }, { passive: false });
-    element.addEventListener('touchend', () => { this.touch.active = false; });
-    element.addEventListener('touchmove', (e) => {
       e.preventDefault();
+      this.mouse.clicked = true;
       const t = e.touches[0];
-      const rect = element.getBoundingClientRect();
-      this.touch.x = t.clientX - rect.left;
-      this.touch.y = t.clientY - rect.top;
+      const pos = getPos(t);
+      this.mouse.x = pos.x;
+      this.mouse.y = pos.y;
     }, { passive: false });
   },
 
-  isKeyPressed(code) { return this.keys.has(code); },
-  isMouseDown() { return this.mouse.down; },
-  getMouse() { return { x: this.mouse.x, y: this.mouse.y }; },
-  getTouch() { return { x: this.touch.x, y: this.touch.y, active: this.touch.active }; }
+  // Возвращает координаты клика и сбрасывает флаг
+  consumeClick() {
+    if (this.mouse.clicked) {
+      this.mouse.clicked = false;
+      return { x: this.mouse.x, y: this.mouse.y };
+    }
+    return null;
+  },
+
+  isKeyPressed(code) { return this.keys.has(code); }
 };

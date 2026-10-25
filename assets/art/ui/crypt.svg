@@ -1,0 +1,51 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="cryptGlow" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" style="stop-color:#a855f7;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#6b21a8;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="64" height="64" fill="#0b0c10"/>
+  <!-- Crypt entrance arch -->
+  <path d="M10 56 Q10 24 32 24 Q54 24 54 56" fill="none" stroke="#1f2937" stroke-width="4" stroke-linecap="round"/>
+  <!-- Inner darkness -->
+  <path d="M14 52 Q14 28 32 28 Q50 28 50 52" fill="#030712" opacity="0.98"/>
+  <!-- Stone bricks -->
+  <g stroke="#1f2937" stroke-width="1" fill="none">
+    <line x1="14" y1="34" x2="50" y2="34"/>
+    <line x1="14" y1="42" x2="50" y2="42"/>
+    <line x1="14" y1="50" x2="50" y2="50"/>
+    <line x1="22" y1="28" x2="22" y2="52"/>
+    <line x1="32" y1="28" x2="32" y2="52"/>
+    <line x1="42" y1="28" x2="42" y2="52"/>
+  </g>
+  <!-- Offset brick row -->
+  <g stroke="#1f2937" stroke-width="1" fill="none">
+    <line x1="19" y1="38" x2="45" y2="38"/>
+    <line x1="19" y1="46" x2="45" y2="46"/>
+    <line x1="27" y1="32" x2="27" y2="50"/>
+    <line x1="37" y1="32" x2="37" y2="50"/>
+  </g>
+  <!-- Sarcophagus -->
+  <rect x="22" y="38" width="20" height="14" rx="1" fill="#111827" stroke="#374151" stroke-width="1"/>
+  <path d="M22 38 Q32 34 42 38" fill="none" stroke="#374151" stroke-width="1"/>
+  <!-- Lid crack -->
+  <path d="M28 36 Q32 40 36 36" fill="none" stroke="#0a0a0f" stroke-width="1"/>
+  <!-- Glowing eyes inside -->
+  <g fill="#a855f7">
+    <circle cx="28" cy="44" r="1.2"/>
+    <circle cx="36" cy="44" r="1.2"/>
+  </g>
+  <!-- Skull on sarcophagus -->
+  <path d="M26 46 Q32 42 38 46 Q32 44 26 46 Z" fill="#e5e7eb" opacity="0.9"/>
+  <circle cx="28" cy="44" r="0.8" fill="#000"/>
+  <circle cx="36" cy="44" r="0.8" fill="#000"/>
+  <!-- Cobwebs -->
+  <g stroke="#6b7280" stroke-width="0.5" fill="none" opacity="0.6">
+    <path d="M14 28 Q16 26 18 28 Q16 30 14 28 Z"/>
+    <path d="M46 28 Q44 26 42 28 Q44 30 46 28 Z"/>
+    <path d="M32 28 Q34 24 36 28 Q34 32 32 28 Z"/>
+  </g>
+  <!-- Purple glow -->
+  <ellipse cx="32" cy="34" rx="22" ry="22" fill="url(#cryptGlow)"/>
+</svg>

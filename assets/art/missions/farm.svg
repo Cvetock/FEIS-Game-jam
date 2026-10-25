@@ -1,0 +1,60 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="farmSky" cx="50%" cy="0%" r="80%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#0b0c10;stop-opacity:0"/>
+    </radialGradient>
+    <linearGradient id="farmGround" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f2937"/>
+      <stop offset="100%" style="stop-color:#0b0c10"/>
+    </linearGradient>
+    <filter id="farmGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#dc2626" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect x="0" y="0" width="64" height="64" fill="url(#farmGround)"/>
+  <!-- Cursed ground -->
+  <rect x="6" y="44" width="52" height="20" rx="2" fill="#111827" opacity="0.95"/>
+  <!-- Twisted dead crops -->
+  <g fill="#374151" opacity="0.95">
+    <path d="M14 38 Q14 32 18 38 Q14 44 14 38 Z"/>
+    <path d="M24 38 Q24 32 28 38 Q24 44 24 38 Z"/>
+    <path d="M34 38 Q34 32 38 38 Q34 44 34 38 Z"/>
+    <path d="M44 38 Q44 32 48 38 Q44 44 44 38 Z"/>
+    <path d="M54 38 Q54 32 58 38 Q54 44 54 38 Z"/>
+  </g>
+  <!-- Rotting barn -->
+  <path d="M46 44 L46 18 Q50 14 54 16 L54 44" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+  <rect x="48" y="28" width="6" height="10" fill="#111827" stroke="#374151" stroke-width="1"/>
+  <!-- Barn cracks -->
+  <g stroke="#0a0a0f" stroke-width="0.5">
+    <path d="M46 18 L50 26 M50 18 L54 24 M48 30 L52 36"/>
+  </g>
+  <!-- Barbed fence -->
+  <g stroke="#4b5563" stroke-width="1.5" fill="none">
+    <line x1="6" y1="44" x2="46" y2="44"/>
+    <line x1="10" y1="44" x2="10" y2="36"/>
+    <line x1="18" y1="44" x2="18" y2="36"/>
+    <line x1="26" y1="44" x2="26" y2="36"/>
+    <line x1="34" y1="44" x2="34" y2="36"/>
+    <line x1="42" y1="44" x2="42" y2="36"/>
+  </g>
+  <!-- Scarecrow -->
+  <path d="M30 44 Q30 36 34 32 Q38 36 38 44" fill="#374151"/>
+  <circle cx="34" cy="30" r="3" fill="#0a0a0f"/>
+  <circle cx="34" cy="29" r="0.8" fill="#dc2626"/>
+  <!-- Blood stains -->
+  <g fill="#7f1d1d" opacity="0.7">
+    <ellipse cx="20" cy="50" rx="3" ry="1.5"/>
+    <ellipse cx="44" cy="50" rx="2" ry="1.2"/>
+  </g>
+  <!-- Crows -->
+  <g fill="#0a0a0f">
+    <path d="M60 10 Q62 8 64 10 Q62 12 60 10"/>
+    <path d="M56 14 Q58 12 60 14 Q58 16 56 14"/>
+    <path d="M62 18 Q64 16 62 18 Q64 20 62 18"/>
+  </g>
+  <!-- Red sky glow -->
+  <ellipse cx="56" cy="6" r="10" fill="#ef4444" opacity="0.5"/>
+  <circle cx="32" cy="32" rx="28" ry="18" fill="url(#farmSky)"/>
+</svg>

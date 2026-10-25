@@ -1,0 +1,67 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="ruinsSky" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#dc2626;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#0b0c10;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="64" height="64" fill="#0b0c10"/>
+  <!-- Bleak stone base -->
+  <rect x="6" y="50" width="52" height="14" rx="2" fill="#111827"/>
+  <!-- Fallen columns -->
+  <g fill="#1f2937" stroke="#374151" stroke-width="1">
+    <rect x="12" y="28" width="6" height="24" rx="1"/>
+    <rect x="24" y="24" width="6" height="28" rx="1"/>
+    <rect x="36" y="30" width="6" height="22" rx="1"/>
+    <rect x="46" y="26" width="6" height="26" rx="1"/>
+  </g>
+  <!-- Broken capitals -->
+  <g fill="#374151">
+    <rect x="10" y="26" width="10" height="3" rx="0.5"/>
+    <rect x="22" y="22" width="10" height="3" rx="0.5"/>
+    <rect x="34" y="28" width="10" height="3" rx="0.5"/>
+    <rect x="44" y="24" width="10" height="3" rx="0.5"/>
+  </g>
+  <!-- Column cracks -->
+  <g stroke="#0a0a0f" stroke-width="0.5">
+    <path d="M14 28 L16 36 M14 36 L16 44"/>
+    <path d="M26 24 L28 32 M26 36 L28 44"/>
+    <path d="M38 30 L40 38 M38 42 L40 50"/>
+    <path d="M48 26 L50 34 M48 40 L50 48"/>
+  </g>
+  <!-- Archway -->
+  <path d="M18 30 Q18 18 32 14 Q46 18 46 30" fill="none" stroke="#374151" stroke-width="6" stroke-linecap="round"/>
+  <!-- Arch cracks -->
+  <path d="M24 24 Q32 20 40 24" fill="none" stroke="#0a0a0f" stroke-width="1"/>
+  <!-- Pedestal with cursed artifact -->
+  <rect x="28" y="40" width="8" height="10" rx="1" fill="#1f2937"/>
+  <path d="M28 40 L32 46 L36 40" fill="none" stroke="#374151" stroke-width="1"/>
+  <!-- Glowing artifact -->
+  <g filter="url(#caveGlowFilter)">
+    <ellipse cx="32" cy="38" rx="5" ry="4" fill="#dc2626"/>
+    <ellipse cx="32" cy="37" rx="2.5" ry="2" fill="#fef2f2"/>
+    <circle cx="32" cy="37" r="1" fill="#fca5a5"/>
+  </g>
+  <!-- Dead vines -->
+  <g stroke="#374151" stroke-width="1.5" fill="none" stroke-linecap="round">
+    <path d="M12 30 Q10 28 8 26"/>
+    <path d="M14 30 Q12 26 10 22"/>
+    <path d="M52 30 Q54 28 56 26"/>
+    <path d="M50 30 Q52 26 54 22"/>
+    <path d="M30 28 Q32 24 34 28"/>
+  </g>
+  <!-- Bone fragments -->
+  <g fill="#e5e7eb" opacity="0.7">
+    <ellipse cx="20" cy="50" rx="4" ry="3"/>
+    <ellipse cx="44" cy="50" rx="3" ry="2"/>
+    <path d="M30 48 L32 44 L34 48"/>
+    <path d="M38 48 L40 44 L42 48"/>
+  </g>
+  <!-- Blood stains -->
+  <g fill="#7f1d1d" opacity="0.7">
+    <ellipse cx="26" cy="52" rx="2" ry="1"/>
+    <ellipse cx="38" cy="52" rx="1.5" ry="1"/>
+  </g>
+  <!-- Red glow -->
+  <ellipse cx="32" cy="34" rx="26" ry="18" fill="url(#ruinsSky)"/>
+</svg>

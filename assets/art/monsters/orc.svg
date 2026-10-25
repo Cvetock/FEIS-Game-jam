@@ -1,0 +1,84 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="orcBody" cx="40%" cy="40%" r="70%">
+      <stop offset="0%" style="stop-color:#111827"/>
+      <stop offset="50%" style="stop-color:#0b0c10"/>
+      <stop offset="100%" style="stop-color:#030712"/>
+    </radialGradient>
+    <linearGradient id="orcSkin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#374151"/>
+      <stop offset="50%" style="stop-color:#1f2937"/>
+      <stop offset="100%" style="stop-color:#111827"/>
+    </linearGradient>
+    <radialGradient id="orcEye" cx="45%" cy="45%" r="60%">
+      <stop offset="0%" style="stop-color:#ef4444"/>
+      <stop offset="100%" style="stop-color:#7f1d1d"/>
+    </radialGradient>
+    <filter id="orcShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+  <g filter="url(#orcShadow)">
+    <!-- Heavy plate armor -->
+    <path d="M12 52 Q32 40 52 52 L52 64 Q32 56 12 64 Z" fill="#374151" opacity="0.95"/>
+    <path d="M16 50 Q32 38 48 50 L48 60 Q32 52 16 60 Z" fill="#1f2937" opacity="0.9"/>
+    <!-- Armor edge details -->
+    <path d="M12 52 Q8 50 10 44 Q12 42 14 46 M32 52 Q28 50 30 44 Q32 42 34 46 M52 52 Q56 50 54 44 Q52 42 50 46" fill="none" stroke="#0a0a0f" stroke-width="1"/>
+    <!-- Chest plate -->
+    <ellipse cx="32" cy="42" rx="16" ry="10" fill="#4b5563" stroke="#6b7280" stroke-width="1.5" opacity="0.95"/>
+    <path d="M20 36 L32 48 L44 36" stroke="#6b7280" stroke-width="2" fill="none"/>
+    <!-- Metal rivets -->
+    <g fill="#111827">
+      <circle cx="20" cy="38" r="1.5"/>
+      <circle cx="44" cy="38" r="1.5"/>
+      <circle cx="20" cy="46" r="1.5"/>
+      <circle cx="44" cy="46" r="1.5"/>
+      <circle cx="32" cy="42" r="1.5"/>
+    </g>
+    <!-- Head -->
+    <ellipse cx="32" cy="20" rx="16" ry="14" fill="#4b5563" opacity="0.95"/>
+    <!-- Brow ridge -->
+    <path d="M14 14 Q32 8 50 14" stroke="#111827" stroke-width="3" fill="none"/>
+    <path d="M16 16 Q32 10 48 16" stroke="#111827" stroke-width="2" fill="none"/>
+    <!-- Deep sockets -->
+    <ellipse cx="22" cy="18" rx="4" ry="4.5" fill="#0a0a0f"/>
+    <ellipse cx="42" cy="18" rx="4" ry="4.5" fill="#0a0a0f"/>
+    <!-- Socket highlights -->
+    <ellipse cx="21" cy="17" rx="1.5" ry="2" fill="#374151" opacity="0.5"/>
+    <ellipse cx="41" cy="17" rx="1.5" ry="2" fill="#374151" opacity="0.5"/>
+    <!-- Glowing red eyes -->
+    <circle cx="22" cy="18" r="1.8" fill="url(#orcEye)"/>
+    <circle cx="42" cy="18" r="1.8" fill="url(#orcEye)"/>
+    <circle cx="22" cy="17.5" r="0.7" fill="#fca5a5"/>
+    <circle cx="42" cy="17.5" r="0.7" fill="#fca5a5"/>
+    <!-- Tusks -->
+    <path d="M22 30 L20 40" stroke="#e5e7eb" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M42 30 L44 40" stroke="#e5e7eb" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- War paint -->
+    <path d="M18 14 L24 6" stroke="#dc2626" stroke-width="1.5" fill="none"/>
+    <path d="M46 6 L40 14" stroke="#dc2626" stroke-width="1.5" fill="none"/>
+    <path d="M24 14 L30 8" stroke="#dc2626" stroke-width="1.5" fill="none"/>
+    <path d="M40 8 L34 14" stroke="#dc2626" stroke-width="1.5" fill="none"/>
+    <!-- Horns -->
+    <path d="M20 10 Q16 2 20 0 Q24 8 20 10" fill="#111827"/>
+    <path d="M44 10 Q48 2 44 0 Q40 8 44 10" fill="#111827"/>
+    <!-- Spiked shoulder -->
+    <path d="M8 30 Q4 26 6 22 Q12 24 16 28 Q10 32 8 30" fill="#111827"/>
+    <path d="M56 30 Q60 26 58 22 Q52 24 48 28 Q54 32 56 30" fill="#111827"/>
+    <!-- Shoulder spikes -->
+    <g fill="#030712">
+      <path d="M6 22 L4 16 L8 20"/>
+      <path d="M10 24 L12 18 L14 22"/>
+      <path d="M58 22 L60 16 L56 20"/>
+      <path d="M54 24 L52 18 L50 22"/>
+    </g>
+    <!-- Blood drips -->
+    <g fill="#7f1d1d" opacity="0.8">
+      <path d="M26 30 Q26 34 28 30 Z"/>
+      <path d="M36 30 Q36 34 34 30 Z"/>
+      <path d="M20 34 Q20 38 22 34 Z"/>
+    </g>
+    <!-- Glow -->
+    <ellipse cx="32" cy="28" rx="26" ry="22" fill="url(#orcEye)"/>
+  </g>
+</svg>
