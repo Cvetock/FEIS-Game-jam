@@ -72,7 +72,7 @@
   // ── Состояние UI ─────────────────────────────────────────────────────────
   let currentTab = 'hire';
   let selectedQuestId = null;
-  let selectedMonsterId = null;
+  let selectedMonsterIds = [];
   let selectedMonsterViewId = null;
   let toast = { msg: '', t: 0 };
   let tender = null;
@@ -404,12 +404,18 @@
       const x = r.x + i * (chipW + 8);
       if (x + chipW > r.x + r.w - 220) return;
       const disabled = m.status !== 'idle';
-      const selected = selectedMonsterId === m.id;
+      const selected = selectedMonsterIds.includes(m.id);
       noteCard(x, chipY, chipW, chipH, {
         disabled: disabled,
         selected: selected,
         pin: false,
-        onClick: function () { selectedMonsterId = m.id; },
+        onClick: function () {
+          if (selected) {
+            selectedMonsterIds = selectedMonsterIds.filter(function (id) { return id !== m.id; });
+          } else if (selectedMonsterIds.length < 3) {
+            selectedMonsterIds.push(m.id);
+          }
+        },
         reason: m.status === 'injured' ? 'Монстр ранен' : 'Монстр отдыхает до завтра'
       });
       Renderer.drawMonsterIcon('mon_' + m.speciesKey, x + 6, chipY + 7, 28);
@@ -419,11 +425,27 @@
         { color: disabled ? '#7a1f1f' : T.inkSoft, font: '8px system-ui' });
     });
 
+    if (selectedMonsterIds.length > 0) {
+      Renderer.text('Выбрано: ' + selectedMonsterIds.length + '/3 монстров', r.x, chipY + 48,
+        { color: '#d8b96a', font: 'bold 11px Georgia' });
+    }
+
+    const monsters = selectedMonsterIds.map(function (id) {
+      return a.monsters.find(function (m) { return m.id === id; });
+    }).filter(Boolean);
+
+    // Показываем вероятность успеха всей группы (силы суммируются)
+    if (quest && monsters.length > 0) {
+      const groupChance = Models.groupSuccessChance(monsters, quest, a);
+      Renderer.text('Шанс группы: ' + Math.round(groupChance * 100) + '%', r.x, chipY + 72,
+        { color: '#d8b96a', font: 'bold 11px Georgia' });
+    }
+
     button(r.x + r.w - 220, chipY, 220, 42, 'ОТПРАВИТЬ НА ЗАДАНИЕ', sendMission, {
       variant: 'ghost',
       font: 'bold 11px Georgia',
-      disabled: !quest || !selectedMonsterId,
-      reason: !quest ? 'Сначала выберите заказ' : 'Выберите свободного монстра'
+      disabled: !quest || monsters.length === 0,
+      reason: !quest ? 'Сначала выберите заказ' : 'Выберите хотя бы одного свободного монстра'
     });
   }
 
@@ -441,7 +463,7 @@
     noteCard(x, y, w, h, {
       selected: selectedQuestId === q.id,
       shadow: true,
-      onClick: function () { selectedQuestId = q.id; selectedMonsterId = null; }
+      onClick: function () { selectedQuestId = q.id; selectedMonsterIds = []; }
     });
 
     const art = QUEST_ART[q.type];
@@ -466,12 +488,16 @@
   function sendMission() {
     const a = Game.agency;
     const quest = a.quests.find(function (q) { return q.id === selectedQuestId; });
-    const monster = a.monsters.find(function (m) { return m.id === selectedMonsterId; });
-    if (!quest || !monster || quest.intercepted || monster.status !== 'idle') {
+    const monsters = selectedMonsterIds.map(function (id) {
+      return a.monsters.find(function (m) { return m.id === id; });
+    }).filter(Boolean);
+    if (!quest || monsters.length === 0 || quest.intercepted ||
+        monsters.some(function (m) { return m.status !== 'idle'; })) {
       showToast('Нужен свободный монстр и не перехваченный заказ');
       return;
     }
-    a.lastResult = Models.calculateResult(monster, quest, a);
+    // Один общий результат на всю группу — силы суммируются
+    a.lastResult = Models.calculateGroupResult(monsters, quest, a);
     Audio.playSfx('depart');
     setState('mission');
   }
@@ -841,8 +867,9 @@
     Renderer.drawMonsterIcon('mon_' + r.speciesKey, x + 36, y + 28, 72);
 
     Renderer.ink('ДОКЛАДНАЯ', x + 132, y + 48, { font: 'bold 16px Georgia' });
-    Renderer.text('от ' + r.monsterName + ' · ' + r.speciesLabel, x + 132, y + 72,
-      { color: T.inkSoft, font: '13px Georgia' });
+    const multi = r.participants && r.participants.length > 1;
+    Renderer.text(multi ? r.monsterName + ' и ещё ' + (r.participants.length - 1) : ('от ' + r.monsterName + ' · ' + r.speciesLabel),
+      x + 132, y + 72, { color: T.inkSoft, font: '13px Georgia' });
     Renderer.text('Задание: ' + r.questTitle, x + 132, y + 94,
       { color: '#6b4a18', font: 'italic 13px Georgia' });
     Renderer.text('День ' + a.day, x + w - 32, y + 42, { color: '#7a6244', align: 'right', font: '12px Georgia' });
@@ -859,10 +886,15 @@
       Renderer.ink(line.slice(0, take), x + 60, y + 160 + i * 36, { font: font });
     });
 
-    if (r.lied && r.int <= 7 && visible >= full.length) {
-      if (Math.sin(reportTime * 9) > 0.4) {
-        Renderer.rect(x + 42, y + 140, w - 84, lines.length * 36, 'rgba(216,196,154,0.45)');
-      }
+    // Список участников группы при мульти-отправке
+    if (r.participants && r.participants.length > 1) {
+      Renderer.text('Участники группы:', x + 32, y + 320,
+        { color: '#d8b96a', font: 'bold 12px Georgia' });
+      const names = r.participants.map(function (pid) {
+        var m = Game.agency.monsters.find(function (x) { return x.id === pid; });
+        return m ? m.name : '—';
+      }).join(' · ');
+      Renderer.text(names, x + 32, y + 342, { color: T.inkSoft, font: '11px Georgia' });
     }
 
     if (r.type === 'overkill') {
@@ -907,7 +939,7 @@
 
     Models.applyMissionResult(a, r);
     selectedQuestId = null;
-    selectedMonsterId = null;
+    selectedMonsterIds = [];
 
     if (checkDefeat()) return;
 
@@ -979,7 +1011,7 @@
     Models.nextDay(a);
     currentTab = 'quests';
     selectedQuestId = null;
-    selectedMonsterId = null;
+    selectedMonsterIds = [];
     if (checkDefeat()) return;
 
     Audio.playSfx('new_day');
