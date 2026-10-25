@@ -26,23 +26,16 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Запрещаем прокрутку страницы */
+            overflow: hidden;
         }
 
-        /* Верхняя панель */
+        /* Верхняя панель стала меньше по высоте, чтобы слоты "свисали" с нее */
         .top-panel {
-            height: 160px; /* Оптимальная высота */
+            height: 100px;
             position: relative;
-            transition: height 0.3s ease;
-            z-index: 20; /* Чтобы рамки были поверх всего */
+            z-index: 20;
         }
 
-        /* Скрытое состояние панели */
-        .top-panel.collapsed {
-            height: 0px;
-        }
-
-        /* Обертка только для рамок монстров */
         .slots-wrapper {
             display: flex;
             justify-content: center;
@@ -55,16 +48,15 @@
         .top-panel.collapsed .slots-wrapper {
             opacity: 0;
             pointer-events: none;
-            transform: translateY(-20px);
+            transform: translateY(-40px);
         }
 
+        /* Увеличенные рамки монстров */
         .roster-slot {
-            width: 95px;
-            height: 135px;
-            background-image: url('new graphics/рамка монстра отряда.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
+            width: 115px;
+            height: 160px;
+            background: transparent url('new graphics/рамка монстра отряда.png') center / contain no-repeat;
+            position: relative;
             cursor: pointer;
             transition: transform 0.2s;
         }
@@ -78,17 +70,14 @@
             transform: scale(1.05);
         }
 
-        /* Кнопка сворачивания (теперь не обрезается) */
+        /* Кнопка сворачивания */
         .collapse-btn {
             position: absolute;
             right: 30px;
-            top: 5px; /* Привязываем к самому верху экрана */
-            width: 60px;
-            height: 120px;
-            background-image: url('new graphics/свернуть панель.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: top center; /* Выравнивание по верху */
+            top: 15px;
+            width: 70px;
+            height: 130px;
+            background: transparent url('new graphics/свернуть панель.png') top center / contain no-repeat;
             cursor: pointer;
             transition: transform 0.2s;
             z-index: 30;
@@ -100,12 +89,12 @@
 
         /* Основная область */
         .main-area {
-            flex: 1; /* Занимает всё доступное место */
-            min-height: 0; /* Важно: позволяет контенту сжиматься, а не выталкивать нижнюю панель */
+            flex: 1;
+            min-height: 0;
             display: flex;
             padding: 0 30px 10px 10px;
             gap: 20px;
-            align-items: stretch; /* Растягиваем по высоте */
+            align-items: stretch;
         }
 
         /* Левая навигация */
@@ -138,16 +127,14 @@
         .nav-btn.research { background-image: url('new graphics/боковая панель исследования.png'); }
         .nav-btn.events { background-image: url('new graphics/боковая панель события.png'); }
 
-        /* Центральный пергамент */
+        /* Центральный пергамент увеличен */
         .content-area {
             flex: 1;
-            max-width: 1000px;
+            max-width: 1150px; /* Увеличен размер, чтобы пергамент стал шире */
             margin: 0 auto;
-            background-image: url('new graphics/лист бумаги по центру_3.jpg');
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            background-position: center;
-            padding: 40px 70px 30px 70px; /* Уменьшены отступы для экономии места */
+            background: transparent url('new graphics/лист бумаги по центру.png') center center / 100% 100% no-repeat;
+            /* Увеличен верхний отступ (padding-top: 80px), чтобы свисающие рамки не перекрывали текст */
+            padding: 80px 80px 30px 80px;
             color: #2a1c10;
             display: flex;
             flex-direction: column;
@@ -156,12 +143,12 @@
         }
 
         .content-header h2 {
-            font-size: 22px;
+            font-size: 26px;
             margin-bottom: 2px;
         }
 
         .content-header p {
-            font-size: 13px;
+            font-size: 15px;
             line-height: 1.2;
         }
 
@@ -171,17 +158,14 @@
             gap: 15px;
             justify-content: center;
             margin: 10px 0;
-            flex: 1; /* Позволяет растягиваться */
+            flex: 1;
             align-items: center;
         }
 
         .monster-card-img {
-            width: 165px;
-            height: 235px;
-            background-image: url('new graphics/карточка монстра_3.jpg');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
+            width: 190px; /* Увеличены карточки монстров внутри пергамента */
+            height: 270px;
+            background: transparent url('new graphics/карточка монстра.png') center / contain no-repeat;
             cursor: pointer;
             transition: transform 0.2s, filter 0.2s;
         }
@@ -197,43 +181,38 @@
             gap: 15px;
             justify-content: center;
             align-items: center;
-            height: 110px;
+            height: 120px;
         }
 
         .details-panel-img {
-            width: 400px;
+            width: 460px; /* Немного увеличены инфо-панели */
             height: 100%;
-            background-image: url('new graphics/описание монстра_2.jpg');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: right center;
+            background: transparent url('new graphics/описание монстра.png') center right / contain no-repeat;
         }
 
         .quote-panel-img {
-            width: 240px;
+            width: 280px;
             height: 100%;
-            background-image: url('new graphics/факт монстра(забавный).png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: left center;
+            background: transparent url('new graphics/факт монстра(забавный).png') left center / contain no-repeat;
         }
 
         /* Нижняя панель */
         .bottom-bar {
-            height: 90px;
-            flex-shrink: 0; /* Не позволяет панели сжиматься */
-            background: linear-gradient(to top, rgba(15, 10, 6, 0.95), rgba(15, 10, 6, 0.6) 60%, transparent);
+            height: 110px; /* Увеличена высота блока кнопок */
+            flex-shrink: 0;
+            background: linear-gradient(to top, rgba(15, 10, 6, 0.95), rgba(15, 10, 6, 0.5) 60%, transparent);
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 15px;
+            gap: 5px; /* Кнопки стали ближе друг к другу */
             padding-bottom: 10px;
             position: relative;
             z-index: 10;
         }
 
+        /* Кнопки увеличены в размерах */
         .action-btn-img {
-            height: 65px;
+            height: 80px;
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
@@ -241,11 +220,11 @@
             transition: filter 0.2s, transform 0.2s;
         }
 
-        .action-btn-img.shop { width: 190px; background-image: url('new graphics/нижняя кнопка магазин.png'); }
-        .action-btn-img.market { width: 190px; background-image: url('new graphics/нижняякнопка рынок.png'); }
-        .action-btn-img.end-day { width: 340px; height: 80px; background-image: url('new graphics/нижняя кнопка закончить день.png'); margin: 0 5px; }
-        .action-btn-img.map { width: 190px; background-image: url('new graphics/нижняя кнопка карта.png'); }
-        .action-btn-img.tavern { width: 190px; background-image: url('new graphics/кнопка таверна.png'); }
+        .action-btn-img.shop { width: 230px; background-image: url('new graphics/нижняя кнопка магазин.png'); }
+        .action-btn-img.market { width: 230px; background-image: url('new graphics/нижняякнопка рынок.png'); }
+        .action-btn-img.end-day { width: 420px; height: 95px; background-image: url('new graphics/нижняя кнопка закончить день.png'); }
+        .action-btn-img.map { width: 230px; background-image: url('new graphics/нижняя кнопка карта.png'); }
+        .action-btn-img.tavern { width: 230px; background-image: url('new graphics/кнопка таверна.png'); }
 
         .action-btn-img:hover {
             filter: brightness(1.2);
@@ -256,7 +235,7 @@
 <body>
     <!-- Верхняя панель -->
     <div class="top-panel" id="topPanel">
-        <!-- Обертка для слотов (плавно исчезает) -->
+        <!-- Обертка для слотов -->
         <div class="slots-wrapper">
             <div class="roster-slot"></div>
             <div class="roster-slot"></div>
@@ -267,7 +246,6 @@
             <div class="roster-slot locked"></div>
         </div>
 
-        <!-- Кнопка осталась снаружи обертки -->
         <div class="collapse-btn" onclick="toggleTopPanel()"></div>
     </div>
 
@@ -316,7 +294,6 @@
 
     <script>
         function toggleTopPanel() {
-            // Теперь просто переключаем класс, CSS сделает всю магию анимации
             const panel = document.getElementById('topPanel');
             panel.classList.toggle('collapsed');
         }
