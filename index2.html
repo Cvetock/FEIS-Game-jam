@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерфейс Гильдии</title>
+    <style>
+        :root {
+            --bg-overlay: rgba(8, 6, 4, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: #0b0908;
+            background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('new graphics/задний фон.jpg');
+            background-size: cover;
+            background-position: center;
+            color: #e7d7ae;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Запрещаем прокрутку страницы */
+        }
+
+        /* Верхняя панель */
+        .top-panel {
+            height: 160px; /* Оптимальная высота */
+            position: relative;
+            transition: height 0.3s ease;
+            z-index: 20; /* Чтобы рамки были поверх всего */
+        }
+
+        /* Скрытое состояние панели */
+        .top-panel.collapsed {
+            height: 0px;
+        }
+
+        /* Обертка только для рамок монстров */
+        .slots-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 15px;
+            padding-top: 15px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .top-panel.collapsed .slots-wrapper {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-20px);
+        }
+
+        .roster-slot {
+            width: 95px;
+            height: 135px;
+            background-image: url('new graphics/рамка монстра отряда.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .roster-slot.locked {
+            background-image: url('new graphics/ячейка закрытый.png');
+            cursor: not-allowed;
+        }
+
+        .roster-slot:not(.locked):hover {
+            transform: scale(1.05);
+        }
+
+        /* Кнопка сворачивания (теперь не обрезается) */
+        .collapse-btn {
+            position: absolute;
+            right: 30px;
+            top: 5px; /* Привязываем к самому верху экрана */
+            width: 60px;
+            height: 120px;
+            background-image: url('new graphics/свернуть панель.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: top center; /* Выравнивание по верху */
+            cursor: pointer;
+            transition: transform 0.2s;
+            z-index: 30;
+        }
+
+        .collapse-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Основная область */
+        .main-area {
+            flex: 1; /* Занимает всё доступное место */
+            min-height: 0; /* Важно: позволяет контенту сжиматься, а не выталкивать нижнюю панель */
+            display: flex;
+            padding: 0 30px 10px 10px;
+            gap: 20px;
+            align-items: stretch; /* Растягиваем по высоте */
+        }
+
+        /* Левая навигация */
+        .sidebar {
+            width: 170px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            width: 100%;
+            height: 55px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            transition: filter 0.2s, transform 0.2s;
+        }
+
+        .nav-btn:hover {
+            filter: brightness(1.2);
+            transform: scale(1.02);
+        }
+
+        .nav-btn.hire { background-image: url('new graphics/боковая кнопка Найм.png'); }
+        .nav-btn.squad { background-image: url('new graphics/боковая панель отряд.png'); }
+        .nav-btn.upgrades { background-image: url('new graphics/боковая панель улучшения.png'); }
+        .nav-btn.research { background-image: url('new graphics/боковая панель исследования.png'); }
+        .nav-btn.events { background-image: url('new graphics/боковая панель события.png'); }
+
+        /* Центральный пергамент */
+        .content-area {
+            flex: 1;
+            max-width: 1000px;
+            margin: 0 auto;
+            background-image: url('new graphics/лист бумаги по центру_3.jpg');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: center;
+            padding: 40px 70px 30px 70px; /* Уменьшены отступы для экономии места */
+            color: #2a1c10;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.7));
+        }
+
+        .content-header h2 {
+            font-size: 22px;
+            margin-bottom: 2px;
+        }
+
+        .content-header p {
+            font-size: 13px;
+            line-height: 1.2;
+        }
+
+        /* Сетка найма */
+        .hire-grid {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 10px 0;
+            flex: 1; /* Позволяет растягиваться */
+            align-items: center;
+        }
+
+        .monster-card-img {
+            width: 165px;
+            height: 235px;
+            background-image: url('new graphics/карточка монстра_3.jpg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            transition: transform 0.2s, filter 0.2s;
+        }
+
+        .monster-card-img:hover {
+            transform: translateY(-5px);
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.6));
+        }
+
+        /* Инфо-панели снизу */
+        .bottom-info-panels {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            height: 110px;
+        }
+
+        .details-panel-img {
+            width: 400px;
+            height: 100%;
+            background-image: url('new graphics/описание монстра_2.jpg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: right center;
+        }
+
+        .quote-panel-img {
+            width: 240px;
+            height: 100%;
+            background-image: url('new graphics/факт монстра(забавный).png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: left center;
+        }
+
+        /* Нижняя панель */
+        .bottom-bar {
+            height: 90px;
+            flex-shrink: 0; /* Не позволяет панели сжиматься */
+            background: linear-gradient(to top, rgba(15, 10, 6, 0.95), rgba(15, 10, 6, 0.6) 60%, transparent);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding-bottom: 10px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .action-btn-img {
+            height: 65px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            transition: filter 0.2s, transform 0.2s;
+        }
+
+        .action-btn-img.shop { width: 190px; background-image: url('new graphics/нижняя кнопка магазин.png'); }
+        .action-btn-img.market { width: 190px; background-image: url('new graphics/нижняякнопка рынок.png'); }
+        .action-btn-img.end-day { width: 340px; height: 80px; background-image: url('new graphics/нижняя кнопка закончить день.png'); margin: 0 5px; }
+        .action-btn-img.map { width: 190px; background-image: url('new graphics/нижняя кнопка карта.png'); }
+        .action-btn-img.tavern { width: 190px; background-image: url('new graphics/кнопка таверна.png'); }
+
+        .action-btn-img:hover {
+            filter: brightness(1.2);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Верхняя панель -->
+    <div class="top-panel" id="topPanel">
+        <!-- Обертка для слотов (плавно исчезает) -->
+        <div class="slots-wrapper">
+            <div class="roster-slot"></div>
+            <div class="roster-slot"></div>
+            <div class="roster-slot"></div>
+            <div class="roster-slot"></div>
+            <div class="roster-slot"></div>
+            <div class="roster-slot locked"></div>
+            <div class="roster-slot locked"></div>
+        </div>
+
+        <!-- Кнопка осталась снаружи обертки -->
+        <div class="collapse-btn" onclick="toggleTopPanel()"></div>
+    </div>
+
+    <!-- Основная часть -->
+    <div class="main-area">
+        <!-- Боковое меню -->
+        <div class="sidebar">
+            <div class="nav-btn hire" onclick="switchTab('hire')"></div>
+            <div class="nav-btn squad" onclick="switchTab('squad')"></div>
+            <div class="nav-btn upgrades" onclick="switchTab('upgrades')"></div>
+            <div class="nav-btn research" onclick="switchTab('research')"></div>
+            <div class="nav-btn events" onclick="switchTab('events')"></div>
+        </div>
+
+        <!-- Центральный экран (Пергамент) -->
+        <div class="content-area" id="mainContent">
+            <div class="content-header">
+                <h2>Найм монстров</h2>
+                <p>Пополняй ряды гильдии сильнейшими.<br>Каждый монстр - это новые возможности и добыча.</p>
+            </div>
+
+            <!-- Карточки найма -->
+            <div class="hire-grid">
+                <div class="monster-card-img" onclick="selectMonster('Гоблин')"></div>
+                <div class="monster-card-img" onclick="selectMonster('Гоблин')"></div>
+                <div class="monster-card-img" onclick="selectMonster('Гоблин')"></div>
+                <div class="monster-card-img" onclick="selectMonster('Гоблин')"></div>
+            </div>
+
+            <!-- Инфо-панели снизу -->
+            <div class="bottom-info-panels">
+                <div class="details-panel-img"></div>
+                <div class="quote-panel-img"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Нижняя панель действий -->
+    <div class="bottom-bar">
+        <div class="action-btn-img shop" onclick="console.log('Магазин')"></div>
+        <div class="action-btn-img market" onclick="console.log('Рынок')"></div>
+        <div class="action-btn-img end-day" onclick="console.log('Закончить день')"></div>
+        <div class="action-btn-img map" onclick="console.log('Карта')"></div>
+        <div class="action-btn-img tavern" onclick="console.log('Таверна')"></div>
+    </div>
+
+    <script>
+        function toggleTopPanel() {
+            // Теперь просто переключаем класс, CSS сделает всю магию анимации
+            const panel = document.getElementById('topPanel');
+            panel.classList.toggle('collapsed');
+        }
+
+        function switchTab(tabId) {
+            console.log("Вкладка:", tabId);
+        }
+
+        function selectMonster(name) {
+            console.log("Выбран монстр:", name);
+        }
+    </script>
+</body>
+</html>

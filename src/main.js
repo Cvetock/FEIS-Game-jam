@@ -323,9 +323,9 @@
     }
 
     const gap = pw(2.8);
+    const ch = Math.min(r.h - pw(4.7) - ph(2.8), ph(44.4));
     const cw = Math.floor((r.w - gap * 2) / 3);
-    const ch = Math.min(r.h - ph(5.6), ph(44.4));
-    const y0 = r.y + pw(4.7) + Math.max(0, (r.h - ph(5.6) - ch) / 2);
+    const y0 = r.y + pw(4.7) + Math.max(0, (r.h - pw(4.7) - ch) / 2);
 
     a.candidates.forEach(function (cand, i) {
       const x = r.x + i * (cw + gap);
@@ -335,31 +335,32 @@
 
       noteCard(x, y, cw, ch, { shadow: true });
 
-      Renderer.note(x + cw / 2 - pw(6.2), y + ph(1.7), pw(12.5), ph(12.5), { pin: false });
-      Renderer.drawMonsterIcon('mon_' + cand.speciesKey, x + cw / 2 - pw(5.8), y + ph(2.1), pw(11.7));
+      const iconSize = pw(11.0);
+      Renderer.note(x + cw / 2 - iconSize / 2, y + ch * 0.06, iconSize, iconSize, { pin: false });
+      Renderer.drawMonsterIcon('mon_' + cand.speciesKey, x + cw / 2 - iconSize / 2 + pw(0.4), y + ch * 0.08, iconSize - pw(0.8));
 
-      Renderer.ink(cand.name, x + cw / 2, y + ph(16.7), { align: 'center', font: 'bold 16px Georgia' });
-      Renderer.text('[' + cand.speciesLabel + ']', x + cw / 2, y + ph(19.2),
+      Renderer.ink(cand.name, x + cw / 2, y + ch * 0.20, { align: 'center', font: 'bold 16px Georgia' });
+      Renderer.text('[' + cand.speciesLabel + ']', x + cw / 2, y + ch * 0.26,
         { color: T.inkSoft, align: 'center', font: '11px Georgia' });
-      Renderer.text('Черта: ' + cand.traits[0], x + cw / 2, y + ph(21.7),
+      Renderer.text('Черта: ' + cand.traits[0], x + cw / 2, y + ch * 0.32,
         { color: '#6b4a18', align: 'center', font: 'italic 11px Georgia' });
 
-      Renderer.text('Стоимость найма: ' + cand.cost + ' зол.', x + cw / 2, y + ph(24.2),
+      Renderer.text('Стоимость найма: ' + cand.cost + ' зол.', x + cw / 2, y + ch * 0.38,
         { color: T.inkSoft, align: 'center', font: 'bold 11px Georgia' });
 
       const stats = [['СИЛА', cand.stats.str], ['ЛОВ', cand.stats.agi], ['ИНТ', cand.stats.int], ['УДА', cand.stats.luck]];
       stats.forEach(function (s, j) {
         const sx = x + pw(1.1) + (j % 2) * (cw / 2 - pw(1.1));
-        const sy = y + ph(27.2) + Math.floor(j / 2) * ph(3.6);
+        const sy = y + ch * 0.46 + Math.floor(j / 2) * ch * 0.06;
         Renderer.text(s[0], sx, sy, { color: T.inkSoft, font: '10px system-ui' });
         Renderer.ink(String(s[1]), sx + cw / 2 - pw(4.2), sy, { align: 'right', font: 'bold 16px Georgia' });
       });
 
-      Renderer.rect(x + pw(1.9), y + ch - ph(11.7), cw - pw(3.9), pw(0.1), 'rgba(90,60,25,0.3)');
-      Renderer.text('Найм: 1 собеседование + ' + cand.cost + ' зол.', x + cw / 2, y + ch - ph(9.2),
+      Renderer.rect(x + pw(1.9), y + ch * 0.78, cw - pw(3.9), pw(0.1), 'rgba(90,60,25,0.3)');
+      Renderer.text('Найм: 1 собеседование + ' + cand.cost + ' зол.', x + cw / 2, y + ch * 0.84,
         { color: T.inkSoft, align: 'center', font: '10px Georgia' });
 
-      button(x + pw(1.1), y + ch - ph(7.8), cw - pw(2.2), ph(4.4), full ? 'СТОЙЛА ПОЛНЫ' : 'НАНЯТЬ', function () {
+      button(x + pw(1.1), y + ch * 0.90, cw - pw(2.2), ch * 0.09, full ? 'СТОЙЛА ПОЛНЫ' : 'НАНЯТЬ', function () {
         hireCandidate(cand);
       }, {
         variant: 'ghost',
@@ -403,7 +404,8 @@
     });
 
     const quest = a.quests.find(function (q) { return q.id === selectedQuestId; });
-    const panelY = r.y + pw(3.9) + 2 * (chh + gapY) + pw(0.8);
+    const questRows = Math.ceil(a.quests.length / 2);
+    const panelY = r.y + pw(3.9) + questRows * (chh + gapY) + pw(0.8);
 
     Renderer.rect(r.x, panelY - pw(0.6), r.w, pw(0.1), 'rgba(90,60,25,0.3)');
     Renderer.ink(quest ? 'Отправляем на задание' : 'Кого отправим?', r.x, panelY + pw(1.9),
@@ -414,9 +416,10 @@
     const chipW = pw(8.6), chipH = ph(5.8), chipGap = pw(1.2);
     const chipsPerRow = Math.max(1, Math.floor((r.w - pw(17.2) - pw(2.4)) / (chipW + chipGap)));
     const chipStartY = panelY + pw(3.1);
+    const maxChipRows = Math.floor((r.h - chipStartY - pw(14)) / (chipH + pw(1.6)));
     let lastChipY = chipStartY;
 
-    a.monsters.forEach(function (m, i) {
+    a.monsters.slice(0, chipsPerRow * maxChipRows).forEach(function (m, i) {
       const col = i % chipsPerRow;
       const row = Math.floor(i / chipsPerRow);
       const x = r.x + col * (chipW + chipGap);
@@ -632,7 +635,7 @@
     Renderer.text(nextStepHint(a, currentTab), cx(2.7), cy(87.2), { color: T.inkSoft, font: '11px Georgia' });
 
     const lastDay = a.day >= a.maxDays;
-    button(centreX(440), cy(83.3), pw(34.4), ph(6.1),
+    button(centreX(pw(34.4)), cy(83.3), pw(34.4), ph(6.1),
       (lastDay ? 'ФИНАЛЬНЫЙ ТЕНДЕР' : 'ЗАКОНЧИТЬ ДЕНЬ') + ' · ' + a.day + '/' + a.maxDays,
       function () { setState('endday'); }, { font: 'bold 14px Georgia' });
 
@@ -883,17 +886,17 @@
     Renderer.paper(x, y, w, h, { r: 8, burn: 20 });
     Renderer.corners(x + pw(0.6), y + pw(0.6), w - pw(1.3), h - pw(1.3), 'rgba(120,80,30,0.4)');
 
-    Renderer.note(x + pw(2.5), y + pw(3.3), pw(6.2), ph(11.1), { pin: false });
-    Renderer.drawMonsterIcon('mon_' + r.speciesKey, x + pw(2.8), y + pw(3.9), pw(5.6));
+    Renderer.note(x + pw(2.5), y + ph(3.3), pw(6.2), ph(11.1), { pin: false });
+    Renderer.drawMonsterIcon('mon_' + r.speciesKey, x + pw(2.8), y + ph(3.9), pw(5.6));
 
-    Renderer.ink('ДОКЛАДНАЯ', x + pw(10.3), y + pw(6.7), { font: 'bold 16px Georgia' });
+    Renderer.ink('ДОКЛАДНАЯ', x + pw(10.3), y + ph(6.7), { font: 'bold 16px Georgia' });
     const multi = r.participants && r.participants.length > 1;
     Renderer.text(multi ? r.monsterName + ' и ещё ' + (r.participants.length - 1) : ('от ' + r.monsterName + ' · ' + r.speciesLabel),
-      x + pw(10.3), y + pw(10.0), { color: T.inkSoft, font: '13px Georgia' });
-    Renderer.text('Задание: ' + r.questTitle, x + pw(10.3), y + pw(13.1),
+      x + pw(10.3), y + ph(10.0), { color: T.inkSoft, font: '13px Georgia' });
+    Renderer.text('Задание: ' + r.questTitle, x + pw(10.3), y + ph(13.1),
       { color: '#6b4a18', font: 'italic 13px Georgia' });
-    Renderer.text('День ' + a.day, x + w - pw(2.5), y + pw(5.8), { color: '#7a6244', align: 'right', font: '12px Georgia' });
-    Renderer.rect(x + pw(2.5), y + pw(15.6), w - pw(5.0), pw(0.1), 'rgba(90,60,25,0.4)');
+    Renderer.text('День ' + a.day, x + w - pw(2.5), y + ph(5.8), { color: '#7a6244', align: 'right', font: '12px Georgia' });
+    Renderer.rect(x + pw(2.5), y + ph(15.6), w - pw(5.0), pw(0.1), 'rgba(90,60,25,0.4)');
 
     const font = 'italic 24px Georgia';
     const full = '«' + r.reportText + '»';
@@ -903,18 +906,18 @@
     lines.forEach(function (line, i) {
       const take = Math.max(0, Math.min(line.length, remaining));
       remaining -= take;
-      Renderer.ink(line.slice(0, take), x + pw(4.7), y + pw(22.2) + i * pw(5.0), { font: font });
+      Renderer.ink(line.slice(0, take), x + pw(4.7), y + ph(22.2) + i * ph(5.0), { font: font });
     });
 
     // Список участников группы при мульти-отправке
     if (r.participants && r.participants.length > 1) {
-      Renderer.text('Участники группы:', x + pw(2.5), y + pw(44.4),
+      Renderer.text('Участники группы:', x + pw(2.5), y + ph(44.4),
         { color: '#d8b96a', font: 'bold 12px Georgia' });
       const names = r.participants.map(function (pid) {
         var m = Game.agency.monsters.find(function (x) { return x.id === pid; });
         return m ? m.name : '—';
       }).join(' · ');
-      Renderer.text(names, x + pw(2.5), y + pw(47.5), { color: T.inkSoft, font: '11px Georgia' });
+      Renderer.text(names, x + pw(2.5), y + ph(47.5), { color: T.inkSoft, font: '11px Georgia' });
     }
 
     if (r.type === 'overkill') {
@@ -922,32 +925,32 @@
       for (let i = 0; i < 24; i++) {
         const ang = (i / 24) * Math.PI * 2;
         const dist = pw(2.3) + p * pw(9.4) + (i % 5) * pw(0.6);
-        Renderer.rect(x + w/2 + Math.cos(ang) * dist, y + pw(38.9) + Math.sin(ang) * dist * 0.55, pw(0.3), pw(0.3),
+        Renderer.rect(x + w/2 + Math.cos(ang) * dist, y + ph(38.9) + Math.sin(ang) * dist * 0.55, pw(0.3), pw(0.3),
           i % 3 === 0 ? '#8a4a12' : '#8a6d1a');
       }
-      Renderer.text('МОНСТР ПЕРЕСТАРАЛСЯ', x + pw(2.5), y + pw(44.4), { color: '#8a4a12', font: 'bold 13px Georgia' });
+      Renderer.text('МОНСТР ПЕРЕСТАРАЛСЯ', x + pw(2.5), y + ph(44.4), { color: '#8a4a12', font: 'bold 13px Georgia' });
     }
 
-    const sealX = x + pw(9.4), sealY = y + pw(48.6);
+    const sealX = x + pw(9.4), sealY = y + ph(48.6);
     Renderer.ctx.save();
     Renderer.ctx.globalAlpha = 0.8;
     Renderer.roundRect(sealX - pw(2.3), sealY - pw(2.3), pw(4.7), pw(4.7), pw(2.3), '#6e1a1a');
     Renderer.roundRectStroke(sealX - pw(2.3), sealY - pw(2.3), pw(4.7), pw(4.7), pw(2.3), '#3f0f0f', pw(0.2));
-    Renderer.text('АГ', sealX, sealY + pw(1.0), { color: '#e8b4a0', align: 'center', font: 'bold 18px Georgia' });
+    Renderer.text('АГ', sealX, sealY + ph(1.0), { color: '#e8b4a0', align: 'center', font: 'bold 18px Georgia' });
     Renderer.ctx.restore();
-    Renderer.text('Печать агентства', x + pw(12.9), sealY + pw(0.8), { color: '#6b4a18', font: 'italic 11px Georgia' });
+    Renderer.text('Печать агентства', x + pw(12.9), sealY + ph(0.8), { color: '#6b4a18', font: 'italic 11px Georgia' });
 
-    Renderer.rect(x + pw(2.5), y + pw(55.3), w - pw(5.0), pw(0.1), 'rgba(90,60,25,0.4)');
+    Renderer.rect(x + pw(2.5), y + ph(55.3), w - pw(5.0), pw(0.1), 'rgba(90,60,25,0.4)');
 
     const trust = Math.round(r.honesty * 100);
     const trustColor = trust >= 80 ? '#3f6b2a' : (trust >= 40 ? '#8a6d1a' : '#7a1f1f');
-    Renderer.text('Интеллект ' + r.int + ' — честность отчёта ' + trust + '%', x + pw(2.5), y + pw(58.9),
+    Renderer.text('Интеллект ' + r.int + ' — честность отчёта ' + trust + '%', x + pw(2.5), y + ph(58.9),
       { color: trustColor, font: 'bold 13px Georgia' });
     Renderer.text('Отчёт пишет сам монстр. Чем выше интеллект, тем чаще он говорит правду.',
-      x + pw(2.5), y + pw(61.7), { color: '#7a6244', font: '11px Georgia' });
+      x + pw(2.5), y + ph(61.7), { color: '#7a6244', font: '11px Georgia' });
 
     if (reportTime > 0.9) {
-      button(x + w - pw(17.2), y + h - pw(8.3), pw(14.8), ph(5.6), 'ПРИНЯТЬ ОТЧЁТ', acceptReport,
+      button(x + w - pw(17.2), y + h - ph(8.3), pw(14.8), ph(5.6), 'ПРИНЯТЬ ОТЧЁТ', acceptReport,
         { variant: 'ghost', font: 'bold 13px Georgia' });
     }
   }
@@ -1220,7 +1223,7 @@
     Renderer.paper(x, y, w, h, { r: 8, burn: 20 });
     Renderer.corners(x + pw(0.6), y + pw(0.6), w - pw(1.3), h - pw(1.3), win ? 'rgba(63,107,42,0.7)' : 'rgba(122,31,31,0.7)');
 
-    Renderer.ink(win ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ', W/2, y + pw(9.7),
+    Renderer.ink(win ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ', W/2, y + ph(9.7),
       { align: 'center', font: 'bold 48px Georgia', color: win ? '#3f6b2a' : '#7a1f1f' });
 
     let text = win ? Content.TENDER_TEXT.win : Content.TENDER_TEXT.lose;
@@ -1232,12 +1235,12 @@
     }
 
     Renderer.wrapText(text, w - pw(7.8), '16px Georgia').forEach(function (line, i) {
-      Renderer.ink(line, W/2, y + pw(19.4) + i * pw(4.2), { align: 'center', font: '16px Georgia' });
+      Renderer.ink(line, W/2, y + ph(19.4) + i * ph(4.2), { align: 'center', font: '16px Georgia' });
     });
 
     if (outcome && outcome.result) {
       Renderer.text('Тендер: вы ' + outcome.result.playerScore + ' — герой ' + outcome.result.aiScore,
-        W/2, y + pw(33.3), { color: T.inkSoft, align: 'center', font: '14px Georgia' });
+        W/2, y + ph(33.3), { color: T.inkSoft, align: 'center', font: '14px Georgia' });
     }
 
     const rows = [
@@ -1249,7 +1252,7 @@
       ['Заказов перехвачено', a.stats.interceptedTotal]
     ];
     rows.forEach(function (r, i) {
-      const ry = y + pw(41.7) + i * pw(4.7);
+      const ry = y + ph(41.7) + i * ph(4.7);
       Renderer.text(r[0], x + pw(4.7), ry, { color: T.inkSoft, font: '13px Georgia' });
       Renderer.ink(String(r[1]), x + w - pw(4.7), ry, { align: 'right', font: 'bold 13px Georgia' });
     });
@@ -1387,7 +1390,7 @@
     Renderer.ink('Цель: дожить до 14-го дня и выиграть тендер у Героя-Директора.',
       W/2, y + h - pw(11.1), { align: 'center', font: '11px Georgia', color: '#6b4a18' });
 
-    button(W/2 - 100, y + h - pw(8.3), pw(15.6), ph(6.1), 'ПОНЯТНО', closeHelp,
+    button(centreX(pw(15.6)), y + h - pw(8.3), pw(15.6), ph(6.1), 'ПОНЯТНО', closeHelp,
       { variant: 'ghost', font: 'bold 13px Georgia' });
   }
 
