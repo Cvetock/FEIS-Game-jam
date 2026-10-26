@@ -294,18 +294,25 @@
            }
 
            const portraitX = x + 24;
-           const portraitY = yOffset + 55 + yHoverOff;
+           const portraitY = yOffset + 60 + yHoverOff;
            const portraitSize = 105;
            Renderer.drawImage('mon_' + m.speciesKey, portraitX, portraitY, portraitSize, portraitSize);
 
+           // 🎛️ НАСТРОЙКА СТАТУСА В РАМКЕ ОТРЯДА (СВЕРХУ)
            let topStatus = '';
            let topStatusColor = '';
            if (m.injuryDays > 0) { topStatus = `РАНЕН (${m.injuryDays}д)`; topStatusColor = '#ef4444'; }
            else if (m.status === 'busy') { topStatus = 'ОТДЫХАЕТ'; topStatusColor = '#f5c542'; }
+           else { topStatus = 'СВОБОДЕН'; topStatusColor = '#4ade80'; }
 
            if (topStatus) {
-               Renderer.text(topStatus, x + slotW / 2, yOffset + 185 + yHoverOff, {
-                   align: 'center', color: topStatusColor, font: 'bold 12px system-ui'
+               // Полупрозрачный фон под статусом для лучшей читаемости
+               Renderer.ctx.fillStyle = 'rgba(0,0,0,0.0)';
+               Renderer.ctx.fillRect(x + 15, yOffset + 188 + yHoverOff, slotW - 30, 20);
+
+               // Меняй число 202 чтобы двигать статус вверх/вниз
+               Renderer.text(topStatus, x - 5 + slotW / 2, yOffset + 189 + yHoverOff, {
+                   align: 'center', color: topStatusColor, font: 'bold 11px system-ui'
                });
            }
 
@@ -447,21 +454,29 @@
     Renderer.ink('Карта заданий', r.x, r.y, { font: 'bold 26px Georgia' });
     Renderer.text('перехват ' + Math.round(Models.interceptChance(a) * 100) + '%', r.x + r.w, r.y, { color: T.inkSoft, align: 'right', font: 'bold 14px Georgia' });
 
+    // 🎛️ ДИНАМИЧЕСКИЙ РАЗМЕР КАРТОЧЕК ЗАДАНИЙ
     const cols = a.quests.length > 4 ? 3 : 2;
     const gap = 15;
     const qW = (r.w - gap * (cols - 1)) / cols;
-    const qH = a.quests.length > 4 ? 90 : 110;
+
+    // Высота карточки
+    const qH = a.quests.length > 4 ? 85 : 105;
+    // Одинаковый отступ сверху
+    const startY = r.y + 25;
 
     a.quests.forEach((q, i) => {
       const col = i % cols;
       const row = Math.floor(i / cols);
       const x = r.x + col * (qW + gap);
-      const y = r.y + 30 + row * (qH + gap);
+      const y = startY + row * (qH + gap);
       drawQuestNote(a, q, x, y, qW, qH);
     });
 
     const quest = a.quests.find(q => q.id === selectedQuestId);
-    const panelY = r.y + 30 + 2 * (qH + gap) - 10;
+
+    // Вычисляем координату Y панели кнопок и чипов на основе количества рядов (всегда ровный отступ снизу)
+    const rowsCount = Math.ceil(a.quests.length / cols);
+    const panelY = startY + rowsCount * (qH + gap) - 5;
 
     Renderer.rect(r.x, panelY, r.w, 1, 'rgba(90,60,25,0.3)');
 
@@ -562,22 +577,34 @@
     });
 
     const art = QUEST_ART[q.type];
-    if (art) Renderer.drawIcon(art, x + 10, y + 15, 70, 80, { label: q.type, color: '#3a2a1a' });
+    if (art) Renderer.drawIcon(art, x + 10, y + 10, 70, 75, { label: q.type, color: '#3a2a1a' });
     else {
-      Renderer.roundRect(x + 10, y + 15, 65, 65, 5, 'rgba(90,60,25,0.2)');
+      Renderer.roundRect(x + 10, y + 10, 70, 75, 5, 'rgba(90,60,25,0.2)');
       Renderer.ink(q.type.substring(0, 2).toUpperCase(), x + 42, y + 50, { align: 'center', font: 'bold 14px Georgia' });
     }
 
-    const tY = h === 90 ? 25 : 30;
+    const isSmall = h <= 90; // Если карточка укороченная (5 заданий)
+    const tY = isSmall ? 25 : 30;
 
-    Renderer.ink(q.title, x + 85, y + tY, { font: 'bold 13px Georgia' });
-    Renderer.text('Сложность ' + q.difficulty + ' · ' + q.risk, x + 85, y + tY + 20, { color: T.inkSoft, font: '11px system-ui' });
-    Renderer.ink(q.reward + ' зол.', x + w - 15, y + tY, { align: 'right', font: 'bold 16px Georgia' });
+    let titleStr = q.title;
+    if (isSmall && titleStr.length > 21) {
+      titleStr = titleStr.substring(0, 20) + '...';
+    }
 
-    if (q.groupOnly) Renderer.text('ТОЛЬКО ДЛЯ ГРУППЫ', x + 85, y + tY + 45, { color: '#a855f7', font: 'bold 10px system-ui' });
-    else if (q.soloOnly) Renderer.text('СУПЕРЗАДАНИЕ (СОЛО)', x + 85, y + tY + 45, { color: '#ef4444', font: 'bold 10px system-ui' });
+    Renderer.ink(titleStr, x + 85, y + tY, { font: 'bold 13px Georgia' });
+
+    // Если карточек 5, переносим награду на строчку к сложности
+    if (isSmall) {
+        Renderer.text('Сложность ' + q.difficulty + ' · ' + q.risk + ' · ' + q.reward + ' зол.', x + 85, y + tY + 20, { color: T.inkSoft, font: '11px system-ui' });
+    } else {
+        Renderer.text('Сложность ' + q.difficulty + ' · ' + q.risk, x + 85, y + tY + 20, { color: T.inkSoft, font: '11px system-ui' });
+        Renderer.ink(q.reward + ' зол.', x + w - 15, y + tY, { align: 'right', font: 'bold 16px Georgia' });
+    }
+
+    if (q.groupOnly) Renderer.text('ТОЛЬКО ДЛЯ ГРУППЫ', x + 85, y + tY + 45, { color: '#a855f7', font: 'bold 9px system-ui' });
+    else if (q.soloOnly) Renderer.text('СУПЕРЗАДАНИЕ (СОЛО)', x + 85, y + tY + 45, { color: '#ef4444', font: 'bold 9px system-ui' });
     else if (q.species && q.species.length) {
-      Renderer.text('Рекомендуется: ' + q.species.map(s => Models.SPECIES[s].label).join('/') + ' (+2 к статам)', x + 85, y + tY + 45, { color: '#6b4a18', font: 'italic 11px Georgia' });
+      Renderer.text('Рекомендуется: ' + q.species.map(s => Models.SPECIES[s].label).join('/') + ' (+2)', x + 85, y + tY + 45, { color: '#6b4a18', font: 'italic 11px Georgia' });
     }
   }
 
@@ -1145,8 +1172,7 @@
     Renderer.drawMonsterIcon('mon_' + ai.speciesKey, leftX + 20, 340, 80);
     Renderer.ink(ai.name, leftX + 110, 380, { font: 'bold 22px Georgia' });
 
-    // Эффективный Интеллект для врага
-    Renderer.text(`[${ai.speciesLabel}] ЭФФ. ИНТ: ${Models.effectiveIntel(ai)}`, leftX + 110, 410, { color: T.inkSoft, font: '14px monospace' });
+    Renderer.text(`ЭФФ. ИНТ: ${Models.effectiveIntel(ai)}`, leftX + 110, 410, { color: T.inkSoft, font: '14px monospace' });
 
     Renderer.text('ПРАВИЛА ТЕНДЕРА (СУММА БАЛЛОВ):', leftX + 20, 460, { color: '#8a4a12', font: 'bold 14px Georgia' });
     Renderer.text('• Характеристика: Эффективный стат минус сложность 8', leftX + 20, 490, { color: '#6b4a18', font: '14px Georgia' });
@@ -1177,7 +1203,7 @@
       const effInt = Models.effectiveIntel(m);
       const effStat = Models.effectiveStat(m, tender.quest, a);
 
-      Renderer.text(`ЭФФ. ИНТ: ${effInt} · ЭФФ. СТАТ: ${effStat}`, x + 65, y + 45, { color: T.inkSoft, font: '11px monospace' });
+      Renderer.text(`И:${effInt} СТ:${effStat}`, x + 65, y + 45, { color: T.inkSoft, font: '11px monospace' });
 
       const rate = tenderRating(m, a);
       Renderer.text(rate.text, x + 65, y + 60, { color: rate.color, font: 'bold 11px Georgia' });
