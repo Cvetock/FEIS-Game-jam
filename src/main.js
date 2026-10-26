@@ -6,7 +6,7 @@
   const T = Renderer.THEME;
   const SAVE_KEY = 'feis_last_human_v1';
 
-  const TOP_FULL = 230;
+  const TOP_FULL = 260; // Увеличен сдвиг, чтобы полностью спрятать увеличенные рамки
   const TOP_MINI = 0;
   const SLOTS = 6;
 
@@ -257,20 +257,28 @@
 
     Renderer.ctx.save();
 
-    // Статичные элементы (не прячутся)
+    // ── Статичные элементы (не зависят от сдвига offset) ──
     Renderer.text('ДЕНЬ ' + a.day + '/' + a.maxDays + ' · КАЗНА: ' + a.gold + ' зол.', 20, 30, { color: '#e7d7ae', font: 'bold 16px Georgia' });
     Renderer.text('УГРОЗА: ' + Math.round(a.threat * 100) + '%', 20, 55, { color: STAGE_LIGHT[Models.threatStage(a.threat)], font: 'bold 16px Georgia' });
-
-    // Кнопка подсказки под угрозой
     button(20, 70, 180, 25, 'СПРАВКА ПО СТАТАМ', () => { showStatsHelp = true; }, { variant: 'ghost', font: 'bold 11px Georgia' });
 
+    // Статичная кнопка сворачивания
+    const btnW = 55, btnH = 130;
+    Renderer.drawImage('btn_collapse', W - btnW - 30, 10, btnW, btnH);
+    addArea(W - btnW - 30, 10, btnW, btnH, () => {
+      panelTarget = panelTarget === 1 ? 0 : 1;
+      Audio.playSfx('pick');
+    });
+
+    // ── Элементы, которые уезжают наверх ──
     Renderer.ctx.translate(0, -offset);
 
-    const slotW = 140;
-    const slotH = 190;
+    // Увеличенные размеры рамок
+    const slotW = 160;
+    const slotH = 220;
     const gap = 15;
     const startX = centreX((slotW + gap) * SLOTS - gap);
-    const yOffset = 25;
+    const yOffset = 20;
 
     for (let i = 0; i < SLOTS; i++) {
       const x = startX + i * (slotW + gap);
@@ -286,11 +294,13 @@
 
         if (m) {
            if (m.injuryDays > 0) {
-             Renderer.roundRect(x + 15, yOffset + 20 + yHoverOff, slotW - 30, slotW - 30, 4, 'rgba(239, 68, 68, 0.4)');
+             Renderer.roundRect(x + 18, yOffset + 24 + yHoverOff, slotW - 36, slotW - 36, 4, 'rgba(239, 68, 68, 0.4)');
            }
-           const portraitX = x + 20;
-           const portraitY = yOffset + 50 + yHoverOff;
-           const portraitSize = slotW - 48;
+
+           // Центрирование портрета внутри рамки
+           const portraitX = x + 25;
+           const portraitY = yOffset + 55 + yHoverOff;
+           const portraitSize = 105;
 
            Renderer.drawImage('mon_' + m.speciesKey, portraitX, portraitY, portraitSize, portraitSize);
 
@@ -302,15 +312,6 @@
       }
     }
     Renderer.ctx.restore();
-
-    // Кнопка сворачивания всегда торчит
-    const btnW = 55, btnH = 130;
-    const btnY = Math.max(10, TOP_FULL - offset + 10);
-    Renderer.drawImage('btn_collapse', W - btnW - 30, btnY, btnW, btnH);
-    addArea(W - btnW - 30, btnY, btnW, btnH, () => {
-      panelTarget = panelTarget === 1 ? 0 : 1;
-      Audio.playSfx('pick');
-    });
   }
 
   function drawBottomBar(a) {
@@ -497,7 +498,6 @@
       Renderer.drawMonsterIcon('mon_' + m.speciesKey, x + 5, y + 15, 45);
       Renderer.ink(m.name, x + 55, y + 25, { font: 'bold 13px Georgia' });
 
-      // Вывод динамической статы
       const statMap = { str: 'СИЛА', agi: 'ЛОВКОСТЬ', int: 'ИНТЕЛЛЕКТ', luck: 'УДАЧА' };
       let statText = '';
       let statColor = T.inkSoft;
@@ -761,9 +761,9 @@
       Renderer.text('Нет доступных зелий или эликсиров.', mX + 15, mY + 415, { color: T.inkSoft, font: '14px Georgia' });
     } else {
       consumables.slice(0, 4).forEach(function (item, i) {
-        const bx = mX + 10 + i * 210; // Увеличено расстояние
+        const bx = mX + 10 + i * 210;
         const by = mY + 382;
-        const bw = 200, bh = 50; // Увеличена ширина
+        const bw = 200, bh = 50;
 
         noteCard(bx, by, bw, bh, {
           pin: false,
@@ -798,7 +798,7 @@
       if (uniqueIds.length === 0) {
          Renderer.text('В сумке нет подходящих предметов.', popX + popW/2, listY + 20, { align: 'center', color: T.inkSoft, font: '14px Georgia' });
       } else {
-         uniqueIds.slice(0, 3).forEach((id, i) => { // Показываем 3 предмета, чтобы влезли описания
+         uniqueIds.slice(0, 3).forEach((id, i) => {
             const item = Models.getItem(id);
             const count = availableItems.filter(x => x.id === id).length;
             const rowY = listY + i * 55;
@@ -1031,7 +1031,6 @@
       Renderer.text(info.text + (m.gold ? ' (+' + m.gold + ')' : ''), cX + padX + innerW, currentY, { color: info.color, align: 'right', font: 'bold 14px Georgia' });
       currentY += 20;
 
-      // Выводим левелапы, если есть
       if (m.levelUps) {
           Renderer.text('   ' + m.levelUps.join(', '), cX + padX, currentY, { color: '#a855f7', font: 'italic 12px Georgia' });
           currentY += 15;
@@ -1597,13 +1596,19 @@
     }
 
     if (pressed('Escape')) {
-      if (Game.state === 'report') acceptReport();
-      else if (Game.state === 'pause') setState('agency');
-      else if (Game.state === 'help') closeHelp();
-      else if (Game.state === 'agency') setState('pause');
-      else if (Game.state === 'monster') {
-          if (popupSlot) popupSlot = null;
-          else setState('agency');
+      if (showEndDayConfirm) {
+        showEndDayConfirm = false;
+      } else if (Game.state === 'report') {
+        acceptReport();
+      } else if (Game.state === 'pause') {
+        setState('agency');
+      } else if (Game.state === 'help') {
+        closeHelp();
+      } else if (Game.state === 'agency') {
+        setState('pause');
+      } else if (Game.state === 'monster') {
+        if (popupSlot) popupSlot = null;
+        else setState('agency');
       }
     }
     if (pressed('Enter') || pressed('Space')) {
@@ -1611,10 +1616,6 @@
       else if (Game.state === 'intro') setState('agency');
       else if (Game.state === 'report' && reportTime > 0.9) acceptReport();
       else if (Game.state === 'endday') handleEndDayButton();
-    }
-    if (pressed('KeyC') && Game.state === 'agency') {
-      panelTarget = panelTarget === 1 ? 0 : 1;
-      Audio.playSfx('pick');
     }
   }
 
@@ -1627,7 +1628,6 @@
 
     drawTransitionOverlay();
 
-    // Рисуем обучение поверх всего, если активно
     checkTutorials();
     if (activeTutorial) drawTutorial();
 
