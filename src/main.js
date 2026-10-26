@@ -75,7 +75,7 @@
   let selectedQuestId = null;
   let selectedMonsterIds = [];
   let selectedMonsterViewId = null;
-  let popupSlot = null; // Хранит тип слота (weapon, armor, amulet), если открыто всплывающее окно
+  let popupSlot = null;
   let toast = { msg: '', t: 0 };
   let tender = null;
   let outcome = null;
@@ -91,6 +91,7 @@
   let panelAnim = 0;
   let panelTarget = 0;
   let gameDifficulty = 'normal';
+  let showStatsHelp = false; // Флаг для окна подсказки о статах
 
   function inRect(p, x, y, w, h) { return p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h; }
   function hoverRect(x, y, w, h) { return inRect(Input.mouse, x, y, w, h); }
@@ -176,6 +177,31 @@
     drawBottomBar(a);
     drawCentral(a);
     drawTopPanel(a);
+
+    // Всплывающее окно со справкой по статам
+    if (showStatsHelp) {
+      Renderer.rect(0, 0, W, H, 'rgba(0,0,0,0.6)');
+      const popW = 500, popH = 340;
+      const popX = centreX(popW), popY = centreY(popH);
+
+      Renderer.paper(popX, popY, popW, popH, { r: 8, burn: 15 });
+      Renderer.ink('ХАРАКТЕРИСТИКИ', popX + popW/2, popY + 45, { align: 'center', font: 'bold 22px Georgia' });
+      Renderer.rect(popX + 40, popY + 65, popW - 80, 1, 'rgba(90,60,25,0.4)');
+
+      const statsHelp = [
+        "СИЛА — отвечает за фермы, караваны, склады, базары.",
+        "ИНТЕЛЛЕКТ — подземелья, руины, башни, ритуалы.",
+        "   * Чем выше ИНТ, тем чаще монстр пишет честные отчёты!",
+        "ЛОВКОСТЬ — деревни, леса, города.",
+        "УДАЧА — увеличивает шанс критического успеха (оверкилл)."
+      ];
+
+      statsHelp.forEach((line, i) => {
+        Renderer.text(line, popX + 40, popY + 110 + i * 35, { color: T.inkSoft, font: 'bold 13px Georgia' });
+      });
+
+      button(popX + popW/2 - 75, popY + popH - 70, 150, 45, 'ПОНЯТНО', () => { showStatsHelp = false; });
+    }
   }
 
   function drawTopPanel(a) {
@@ -206,7 +232,7 @@
         Renderer.drawImage('roster_slot', x, yOffset + yHoverOff, slotW, slotH);
 
         if (m) {
-           if (m.status === 'injured') {
+           if (m.injuryDays > 0) {
              Renderer.roundRect(x + 15, yOffset + 25 + yHoverOff, slotW - 30, slotW - 30, 4, 'rgba(239, 68, 68, 0.4)');
            }
            const portraitX = x + 20;
@@ -229,6 +255,9 @@
       panelTarget = panelTarget ? 0 : 1;
       Audio.playSfx('pick');
     });
+
+    // Кнопка подсказки в верхней панели
+    button(W - 70, 10, 40, 30, '?', () => { showStatsHelp = true; }, { variant: 'ghost', font: 'bold 16px Georgia' });
   }
 
   function drawBottomBar(a) {
@@ -299,9 +328,10 @@
     }
 
     const cardW = 190, cardH = 270, gap = 15;
-    const startX = r.x + (r.w - (cardW*4 + gap*3))/2;
+    // Центрируем кандидатов с учетом их количества
+    const startX = r.x + (r.w - (cardW * a.candidates.length + gap * (a.candidates.length - 1))) / 2;
 
-    a.candidates.slice(0, 4).forEach((cand, i) => {
+    a.candidates.forEach((cand, i) => {
        const x = startX + i*(cardW+gap);
        const y = r.y + 70;
        const full = a.monsters.length >= Models.rosterCap(a);
@@ -313,14 +343,18 @@
        Renderer.note(x + cardW / 2 - iconSize / 2, y + 15, iconSize, iconSize, { pin: false });
        Renderer.drawMonsterIcon('mon_' + cand.speciesKey, x + cardW / 2 - iconSize / 2 + 4, y + 19, iconSize - 8);
 
-       Renderer.ink(cand.name, x + cardW / 2, y + 130, { align: 'center', font: 'bold 18px Georgia' });
+       // Форматируем предпочтение без нижних подчеркиваний
+       const prefText = cand.preference.replace(/_/g, ' ');
+
+       Renderer.ink(cand.name + ' [Ур.' + cand.level + ']', x + cardW / 2, y + 130, { align: 'center', font: 'bold 18px Georgia' });
        Renderer.text('[' + cand.speciesLabel + ']', x + cardW / 2, y + 148, { color: T.inkSoft, align: 'center', font: '12px Georgia' });
        Renderer.text('Черта: ' + cand.traits[0], x + cardW / 2, y + 165, { color: '#6b4a18', align: 'center', font: 'italic 12px Georgia' });
+       Renderer.text('Каприз: ' + prefText, x + cardW / 2, y + 180, { color: '#8a4a12', align: 'center', font: 'italic 10px Georgia' });
 
        const stats = [['СИЛА', cand.stats.str], ['ЛОВ', cand.stats.agi], ['ИНТ', cand.stats.int], ['УДА', cand.stats.luck]];
        stats.forEach(function (s, j) {
          const sx = x + 15 + (j % 2) * (cardW / 2 - 15);
-         const sy = y + 195 + Math.floor(j / 2) * 20;
+         const sy = y + 205 + Math.floor(j / 2) * 20;
          Renderer.text(s[0], sx, sy, { color: T.inkSoft, font: '11px system-ui' });
          Renderer.ink(String(s[1]), sx + cardW / 2 - 25, sy, { align: 'right', font: 'bold 16px Georgia' });
        });
@@ -389,16 +423,31 @@
       const y = panelY + 45;
       currentX += chipW + chipGap;
 
-      const disabled = m.status !== 'idle';
+      const disabled = m.status !== 'idle' && m.injuryDays <= 0;
+      const injured = m.injuryDays > 0;
       const selected = selectedMonsterIds.includes(m.id);
 
       noteCard(x, y, chipW, chipH, {
-        disabled: disabled, selected: selected, pin: false,
+        disabled: disabled || injured, selected: selected, pin: false,
         onClick: () => {
-          if (selected) selectedMonsterIds = selectedMonsterIds.filter(id => id !== m.id);
-          else if (selectedMonsterIds.length < 3) selectedMonsterIds.push(m.id);
+          if (selected) {
+             selectedMonsterIds = selectedMonsterIds.filter(id => id !== m.id);
+          } else if (selectedMonsterIds.length < 3) {
+             if (!quest) {
+                showToast('Сначала выберите заказ!');
+                return;
+             }
+             // Проверка предпочтения перед отправкой
+             const refusal = Models.getRefusalReason(m, quest, a);
+             if (refusal) {
+                 Audio.playSfx('reject');
+                 showToast(m.name + ': ' + refusal);
+             } else {
+                 selectedMonsterIds.push(m.id);
+             }
+          }
         },
-        reason: m.status === 'injured' ? 'Монстр ранен' : 'Монстр отдыхает'
+        reason: injured ? 'Монстр ранен' : 'Монстр отдыхает'
       });
 
       Renderer.drawMonsterIcon('mon_' + m.speciesKey, x + 5, y + 15, 45);
@@ -406,7 +455,7 @@
 
       const totalStr = m.stats.str + Models.itemBonus(m, 'str');
       const totalInt = m.stats.int + Models.itemBonus(m, 'int');
-      Renderer.text(disabled ? (m.status === 'injured' ? 'ранен' : 'отдыхает') : ('СИЛ ' + totalStr + ' · ИНТ ' + totalInt), x + 55, y + 50, { color: disabled ? '#7a1f1f' : T.inkSoft, font: '10px system-ui' });
+      Renderer.text(injured ? `ранен (${m.injuryDays}д)` : (disabled ? 'отдыхает' : ('СИЛ ' + totalStr + ' · ИНТ ' + totalInt)), x + 55, y + 50, { color: (disabled||injured) ? '#7a1f1f' : T.inkSoft, font: '10px system-ui' });
     });
 
     const btnW = 200;
@@ -583,16 +632,24 @@
       Renderer.paper(cX, cY, cW, cH, { r: 8, burn: 18 });
     }
 
+    // Кнопка НАЗАД в правом верхнем углу
+    button(cX + cW - 160, cY + 40, 120, 45, 'НАЗАД', function () { popupSlot = null; setState('agency'); });
+
     const mX = cX + 80;
     const mY = cY + 50;
 
     Renderer.drawMonsterIcon('mon_' + m.speciesKey, mX, mY, 140);
-    Renderer.ink(m.name, mX + 170, mY + 30, { font: 'bold 36px Georgia' });
+    Renderer.ink(m.name + ' [Ур. ' + m.level + ']', mX + 170, mY + 30, { font: 'bold 36px Georgia' });
 
-    const st = STATUS_LABELS[m.status] || STATUS_LABELS.injured;
-    Renderer.text('[' + m.speciesLabel + '] · ' + st.text, mX + 170, mY + 60, { color: st.color, font: 'bold 16px Georgia' });
+    let statusText = STATUS_LABELS[m.status]?.text || 'РАНЕН';
+    if (m.injuryDays > 0) statusText = `РАНЕН (${m.injuryDays} дн.)`;
+    const statusColor = m.injuryDays > 0 ? '#7a1f1f' : (STATUS_LABELS[m.status]?.color || '#7a1f1f');
+
+    Renderer.text('[' + m.speciesLabel + '] · Опыт: ' + m.xp + '/' + (m.level * 2) + ' · ' + statusText, mX + 170, mY + 60, { color: statusColor, font: 'bold 16px Georgia' });
     Renderer.text('Черта: ' + m.traits[0] + ' — ' + (Content.TRAIT_INFO[m.traits[0]] || ''), mX + 170, mY + 90, { color: T.inkSoft, font: 'italic 15px Georgia' });
-    Renderer.text('Предпочтение: ' + m.preference + ' · заданий: ' + m.missions + ' · оверкиллов: ' + m.overkillCount, mX + 170, mY + 120, { color: '#7a6244', font: '14px system-ui' });
+
+    const prefText = m.preference.replace(/_/g, ' ');
+    Renderer.text('Каприз: ' + prefText + ' · заданий: ' + m.missions + ' · оверкиллов: ' + m.overkillCount, mX + 170, mY + 120, { color: '#7a6244', font: '14px system-ui' });
 
     const stats = [['СИЛА', m.stats.str, 'str'], ['ЛОВКОСТЬ', m.stats.agi, 'agi'], ['ИНТЕЛЛЕКТ', m.stats.int, 'int'], ['УДАЧА', m.stats.luck, 'luck']];
     stats.forEach(function (s, i) {
@@ -636,36 +693,39 @@
     // Оставляем внизу только расходники
     Renderer.ink('РАСХОДНИКИ (СУМКА)', mX, mY + 360, { font: 'bold 18px Georgia' });
 
+    // Стилизованная рамка вокруг сумки
+    Renderer.roundRectStroke(mX, mY + 375, cW - 160, 65, 6, 'rgba(140, 100, 50, 0.4)', 2);
+    Renderer.roundRect(mX, mY + 375, cW - 160, 65, 6, 'rgba(30,20,10,0.1)');
+
     const bag = {};
     a.inventory.forEach(id => { bag[id] = (bag[id] || 0) + 1; });
     const consumables = Object.keys(bag).map(id => Models.getItem(id)).filter(item => item && item.type === 'consumable');
 
     if (!consumables.length) {
-      Renderer.text('Нет доступных зелий или эликсиров.', mX, mY + 390, { color: T.inkSoft, font: '14px Georgia' });
+      Renderer.text('Нет доступных зелий или эликсиров.', mX + 15, mY + 415, { color: T.inkSoft, font: '14px Georgia' });
     } else {
       consumables.slice(0, 6).forEach(function (item, i) {
-        const bx = mX + i * 150;
-        const by = mY + 375;
-        const bw = 140, bh = 50;
+        const bx = mX + 10 + i * 160;
+        const by = mY + 382;
+        const bw = 150, bh = 50;
 
         noteCard(bx, by, bw, bh, {
           pin: false,
           onClick: () => useItem(m, item.id)
         });
         Renderer.ink(item.name + (bag[item.id] > 1 ? ' ×' + bag[item.id] : ''), bx + 10, by + 20, { font: 'bold 12px Georgia' });
-        Renderer.text('применить', bx + 10, by + 40, { color: '#8a4a12', font: '11px system-ui' });
+
+        // Пишем эффект предмета в сумке
+        Renderer.text(item.desc || 'применить', bx + 10, by + 40, { color: '#8a4a12', font: '11px system-ui' });
       });
     }
 
-    button(cX + cW - 180, cY + cH - 70, 140, 45, 'НАЗАД', function () { popupSlot = null; setState('agency'); });
-
-    if (m.status === 'idle') {
-      button(mX, cY + cH - 70, 140, 45, 'УВОЛЬНИТЬ', function () {
-        const res = Models.fireMonster(Game.agency, m.id);
-        if (res.success) { Audio.playSfx('reject'); showToast(res.name + ' уволен.'); popupSlot = null; setState('agency'); }
-        else { Audio.playSfx('reject'); showToast(res.reason); }
-      }, { variant: 'danger' });
-    }
+    // Кнопка УВОЛИТЬ в правом нижнем углу
+    button(cX + cW - 180, cY + cH - 75, 140, 45, 'УВОЛЬНИТЬ', function () {
+      const res = Models.fireMonster(Game.agency, m.id);
+      if (res.success) { Audio.playSfx('reject'); showToast(res.name + ' уволен.'); popupSlot = null; setState('agency'); }
+      else { Audio.playSfx('reject'); showToast(res.reason); }
+    }, { variant: 'danger', disabled: m.injuryDays > 0, reason: 'Нельзя увольнять раненых' });
 
     // ── Отрисовка всплывающего окна (Popup) для выбора экипировки ──
     if (popupSlot) {
@@ -703,7 +763,6 @@
          });
       }
 
-      // Кнопка Снять предмет, если он уже надет
       const currentEq = m.equipment[popupSlot];
       if (currentEq) {
          button(popX + 40, popY + popH - 65, 140, 45, 'СНЯТЬ ПРЕДМЕТ', () => {
@@ -765,7 +824,6 @@
     Renderer.text('Чем закончится — узнаем из докладной.', W/2, barY + 40, { color: '#7a6244', align: 'center', font: '14px Georgia' });
   }
 
-  // ── Экран Отчёта (Исправлены отступы) ───────────────────────────────────
   function drawReport() {
     const a = Game.agency;
     const r = a.lastResult;
@@ -862,7 +920,6 @@
     if (a.quests.length === 0) showToast('Заказы закончились — завершайте день');
   }
 
-  // ── Экран Конца Дня (Увеличены отступы, чтобы не вылезало) ───────────────
   function drawEndDay() {
     const a = Game.agency;
 
@@ -965,7 +1022,7 @@
     const eff = Models.effectiveStat(m, q, a) - q.difficulty;
     const int = Models.effectiveIntel(m);
     const honesty = int >= 14 ? 10 : int >= 8 ? 5 : -5;
-    const pref = Models.preferenceMatchesTask(m, Content.TENDER_QUEST) ? 5 : -5;
+    const pref = !Models.getRefusalReason(m, q, a) ? 5 : -5;
     const score = eff + honesty + pref;
     if (score >= 14) return { text: 'СИЛЬНЫЙ ОТЧЁТ', color: '#3f6b2a' };
     if (score >= 6) return { text: 'НОРМАЛЬНЫЙ ОТЧЁТ', color: '#8a6d1a' };
@@ -1190,9 +1247,11 @@
       setState('intro');
     }, { font: 'bold 16px Georgia' });
 
-    button(centreX(btnW), cY + 250, btnW, btnH, 'СЛОЖНОСТЬ: ' + (gameDifficulty === 'hard' ? 'ВЫСОКАЯ' : 'ОБЫЧНАЯ'), function () {
-      gameDifficulty = gameDifficulty === 'normal' ? 'hard' : 'normal';
-    }, { font: 'bold 14px Georgia', variant: gameDifficulty === 'hard' ? 'danger' : 'primary' });
+    button(centreX(btnW), cY + 250, btnW, btnH, 'СЛОЖНОСТЬ: ' + (gameDifficulty === 'hard' ? 'ВЫСОКАЯ' : (gameDifficulty === 'easy' ? 'ЛЁГКАЯ' : 'ОБЫЧНАЯ')), function () {
+      if (gameDifficulty === 'normal') gameDifficulty = 'hard';
+      else if (gameDifficulty === 'hard') gameDifficulty = 'easy';
+      else gameDifficulty = 'normal';
+    }, { font: 'bold 14px Georgia', variant: gameDifficulty === 'hard' ? 'danger' : (gameDifficulty === 'easy' ? 'success' : 'primary') });
 
     button(centreX(btnW), cY + 320, btnW, btnH, save ? ('ПРОДОЛЖИТЬ · день ' + save.day) : 'ПРОДОЛЖИТЬ', function () {
       if (loadGame()) { currentTab = 'hire'; setState('agency'); }
@@ -1458,7 +1517,7 @@
       else if (Game.state === 'help') closeHelp();
       else if (Game.state === 'agency') setState('pause');
       else if (Game.state === 'monster') {
-          if (popupSlot) popupSlot = null; // Закрыть попап, если открыт
+          if (popupSlot) popupSlot = null;
           else setState('agency');
       }
     }
