@@ -6,7 +6,6 @@
   const T = Renderer.THEME;
   const SAVE_KEY = 'feis_last_human_v1';
 
-  // ── Сетка ────────────────────────────────────────────────────────────────
   const TOP_FULL = 130;
   const TOP_MINI = 34;
   const SLOTS = 6;
@@ -91,7 +90,7 @@
   let panelAnim = 0;
   let panelTarget = 0;
   let gameDifficulty = 'normal';
-  let showStatsHelp = false; // Флаг для окна подсказки о статах
+  let showStatsHelp = false;
 
   function inRect(p, x, y, w, h) { return p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h; }
   function hoverRect(x, y, w, h) { return inRect(Input.mouse, x, y, w, h); }
@@ -108,7 +107,6 @@
   function easeInOut(p) { return p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; }
   function panelHeight() { const e = easeInOut(Math.max(0, Math.min(1, panelAnim))); return TOP_FULL - (TOP_FULL - TOP_MINI) * e; }
 
-  // ── Стилизованные темные кнопки и карточки ───────────────────────────────
   function button(x, y, w, h, label, onClick, opts) {
     opts = opts || {};
     const disabled = !!opts.disabled;
@@ -178,7 +176,6 @@
     drawCentral(a);
     drawTopPanel(a);
 
-    // Всплывающее окно со справкой по статам
     if (showStatsHelp) {
       Renderer.rect(0, 0, W, H, 'rgba(0,0,0,0.6)');
       const popW = 500, popH = 340;
@@ -213,6 +210,7 @@
     Renderer.rect(0, 0, W, Math.max(0, topH - 60), 'rgba(15,10,6,0.8)');
 
     Renderer.text('ДЕНЬ ' + a.day + '/' + a.maxDays + ' · КАЗНА: ' + a.gold + ' зол.', 20, 22, { color: '#e7d7ae', font: 'bold 12px Georgia' });
+    button(20, 35, 160, 25, 'СПРАВКА ПО СТАТАМ', () => { showStatsHelp = true; }, { variant: 'ghost', font: 'bold 10px Georgia' });
     Renderer.text('УГРОЗА: ' + Math.round(a.threat * 100) + '%', W - 150, 22, { color: STAGE_LIGHT[Models.threatStage(a.threat)], font: 'bold 12px Georgia' });
 
     const startX = centreX((slotW + gap) * SLOTS - gap);
@@ -255,9 +253,6 @@
       panelTarget = panelTarget ? 0 : 1;
       Audio.playSfx('pick');
     });
-
-    // Кнопка подсказки в верхней панели
-    button(W - 70, 10, 40, 30, '?', () => { showStatsHelp = true; }, { variant: 'ghost', font: 'bold 16px Georgia' });
   }
 
   function drawBottomBar(a) {
@@ -328,7 +323,6 @@
     }
 
     const cardW = 190, cardH = 270, gap = 15;
-    // Центрируем кандидатов с учетом их количества
     const startX = r.x + (r.w - (cardW * a.candidates.length + gap * (a.candidates.length - 1))) / 2;
 
     a.candidates.forEach((cand, i) => {
@@ -343,18 +337,14 @@
        Renderer.note(x + cardW / 2 - iconSize / 2, y + 15, iconSize, iconSize, { pin: false });
        Renderer.drawMonsterIcon('mon_' + cand.speciesKey, x + cardW / 2 - iconSize / 2 + 4, y + 19, iconSize - 8);
 
-       // Форматируем предпочтение без нижних подчеркиваний
-       const prefText = cand.preference.replace(/_/g, ' ');
-
        Renderer.ink(cand.name + ' [Ур.' + cand.level + ']', x + cardW / 2, y + 130, { align: 'center', font: 'bold 18px Georgia' });
        Renderer.text('[' + cand.speciesLabel + ']', x + cardW / 2, y + 148, { color: T.inkSoft, align: 'center', font: '12px Georgia' });
        Renderer.text('Черта: ' + cand.traits[0], x + cardW / 2, y + 165, { color: '#6b4a18', align: 'center', font: 'italic 12px Georgia' });
-       Renderer.text('Каприз: ' + prefText, x + cardW / 2, y + 180, { color: '#8a4a12', align: 'center', font: 'italic 10px Georgia' });
 
        const stats = [['СИЛА', cand.stats.str], ['ЛОВ', cand.stats.agi], ['ИНТ', cand.stats.int], ['УДА', cand.stats.luck]];
        stats.forEach(function (s, j) {
          const sx = x + 15 + (j % 2) * (cardW / 2 - 15);
-         const sy = y + 205 + Math.floor(j / 2) * 20;
+         const sy = y + 195 + Math.floor(j / 2) * 20;
          Renderer.text(s[0], sx, sy, { color: T.inkSoft, font: '11px system-ui' });
          Renderer.ink(String(s[1]), sx + cardW / 2 - 25, sy, { align: 'right', font: 'bold 16px Georgia' });
        });
@@ -383,7 +373,7 @@
       showToast(cand.name + ' принят в отряд за ' + cand.cost + ' зол.');
     } else {
       Audio.playSfx('reject');
-      showToast('Отказ: ' + res.reason);
+      showToast(res.reason);
     }
   }
 
@@ -433,11 +423,7 @@
           if (selected) {
              selectedMonsterIds = selectedMonsterIds.filter(id => id !== m.id);
           } else if (selectedMonsterIds.length < 3) {
-             if (!quest) {
-                showToast('Сначала выберите заказ!');
-                return;
-             }
-             // Проверка предпочтения перед отправкой
+             if (!quest) { showToast('Сначала выберите заказ!'); return; }
              const refusal = Models.getRefusalReason(m, quest, a);
              if (refusal) {
                  Audio.playSfx('reject');
@@ -614,7 +600,7 @@
     else { Audio.playSfx('reject'); showToast(res.reason); }
   }
 
-  // ── Досье монстра (Всплывающие окна экипировки) ─────────────────────────
+  // ── Досье монстра ────────────────────────────────────────────────────────
   function drawMonsterView() {
     const a = Game.agency;
     const m = a.monsters.find(function (x) { return x.id === selectedMonsterViewId; });
@@ -632,8 +618,8 @@
       Renderer.paper(cX, cY, cW, cH, { r: 8, burn: 18 });
     }
 
-    // Кнопка НАЗАД в правом верхнем углу
-    button(cX + cW - 160, cY + 40, 120, 45, 'НАЗАД', function () { popupSlot = null; setState('agency'); });
+    // Кнопка НАЗАД в правом верхнем углу (сдвинута левее)
+    button(cX + cW - 240, cY + 40, 140, 45, 'НАЗАД', function () { popupSlot = null; setState('agency'); });
 
     const mX = cX + 80;
     const mY = cY + 50;
@@ -672,7 +658,7 @@
 
       noteCard(sx, sy, sw, sh, {
         pin: false,
-        selected: popupSlot === slot, // Выделяем слот, если для него открыто окно
+        selected: popupSlot === slot,
         onClick: () => { popupSlot = popupSlot === slot ? null : slot; Audio.playSfx('click'); }
       });
 
@@ -690,12 +676,11 @@
       }
     });
 
-    // Оставляем внизу только расходники
     Renderer.ink('РАСХОДНИКИ (СУМКА)', mX, mY + 360, { font: 'bold 18px Georgia' });
 
-    // Стилизованная рамка вокруг сумки
-    Renderer.roundRectStroke(mX, mY + 375, cW - 160, 65, 6, 'rgba(140, 100, 50, 0.4)', 2);
-    Renderer.roundRect(mX, mY + 375, cW - 160, 65, 6, 'rgba(30,20,10,0.1)');
+    // Укороченная рамка сумки, чтобы не перекрывать кнопку Уволить
+    Renderer.roundRectStroke(mX, mY + 375, cW - 360, 65, 6, 'rgba(140, 100, 50, 0.4)', 2);
+    Renderer.roundRect(mX, mY + 375, cW - 360, 65, 6, 'rgba(30,20,10,0.1)');
 
     const bag = {};
     a.inventory.forEach(id => { bag[id] = (bag[id] || 0) + 1; });
@@ -704,7 +689,7 @@
     if (!consumables.length) {
       Renderer.text('Нет доступных зелий или эликсиров.', mX + 15, mY + 415, { color: T.inkSoft, font: '14px Georgia' });
     } else {
-      consumables.slice(0, 6).forEach(function (item, i) {
+      consumables.slice(0, 5).forEach(function (item, i) {
         const bx = mX + 10 + i * 160;
         const by = mY + 382;
         const bw = 150, bh = 50;
@@ -714,14 +699,12 @@
           onClick: () => useItem(m, item.id)
         });
         Renderer.ink(item.name + (bag[item.id] > 1 ? ' ×' + bag[item.id] : ''), bx + 10, by + 20, { font: 'bold 12px Georgia' });
-
-        // Пишем эффект предмета в сумке
         Renderer.text(item.desc || 'применить', bx + 10, by + 40, { color: '#8a4a12', font: '11px system-ui' });
       });
     }
 
-    // Кнопка УВОЛИТЬ в правом нижнем углу
-    button(cX + cW - 180, cY + cH - 75, 140, 45, 'УВОЛЬНИТЬ', function () {
+    // Кнопка УВОЛИТЬ в правом нижнем углу (сдвинута левее)
+    button(cX + cW - 240, cY + cH - 85, 140, 45, 'УВОЛЬНИТЬ', function () {
       const res = Models.fireMonster(Game.agency, m.id);
       if (res.success) { Audio.playSfx('reject'); showToast(res.name + ' уволен.'); popupSlot = null; setState('agency'); }
       else { Audio.playSfx('reject'); showToast(res.reason); }
@@ -729,7 +712,7 @@
 
     // ── Отрисовка всплывающего окна (Popup) для выбора экипировки ──
     if (popupSlot) {
-      Renderer.rect(0, 0, W, H, 'rgba(0,0,0,0.6)'); // Затемняем фон
+      Renderer.rect(0, 0, W, H, 'rgba(0,0,0,0.6)');
 
       const popW = 400, popH = 340;
       const popX = centreX(popW), popY = centreY(popH);
@@ -746,7 +729,7 @@
       if (uniqueIds.length === 0) {
          Renderer.text('В сумке нет подходящих предметов.', popX + popW/2, listY + 20, { align: 'center', color: T.inkSoft, font: '14px Georgia' });
       } else {
-         uniqueIds.slice(0, 4).forEach((id, i) => { // показываем до 4 предметов одного типа
+         uniqueIds.slice(0, 4).forEach((id, i) => {
             const item = Models.getItem(id);
             const count = availableItems.filter(x => x.id === id).length;
             const rowY = listY + i * 50;
@@ -758,7 +741,7 @@
 
             addArea(popX + 20, rowY, popW - 40, 45, () => {
                equipItem(m, item.id);
-               popupSlot = null; // Закрываем попап после экипировки
+               popupSlot = null;
             });
          });
       }
