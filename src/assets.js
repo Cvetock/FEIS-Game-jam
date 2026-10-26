@@ -35,6 +35,33 @@ window.Assets = {
     if (this._promise) return this._promise;
 
     const manifest = [
+      ['bg_main',            'new graphics/задний фон.jpg'],
+      ['bg_paper',           'new graphics/лист бумаги по центру.png'],
+
+      // Верхняя панель (отряд)
+      ['roster_slot',        'new graphics/рамка монстра отряда.png'],
+      ['roster_slot_locked', 'new graphics/ячейка закрытый.png'],
+      ['btn_collapse',       'new graphics/свернуть панель.png'],
+
+      // Боковое меню (навигация)
+      ['nav_hire',           'new graphics/боковая кнопка Найм.png'],
+      ['nav_squad',          'new graphics/боковая панель отряд.png'],
+      ['nav_upgrades',       'new graphics/боковая панель улучшения.png'],
+      ['nav_research',       'new graphics/боковая панель исследования.png'],
+      ['nav_events',         'new graphics/боковая панель события.png'],
+
+      // Карточки внутри пергамента
+      ['monster_card',       'new graphics/карточка монстра.png'],
+      ['monster_desc',       'new graphics/описание монстра.png'],
+      ['monster_fact',       'new graphics/факт монстра(забавный).png'],
+
+      // Нижняя панель
+      ['btn_shop',           'new graphics/нижняя кнопка магазин.png'],
+      ['btn_market',         'new graphics/нижняякнопка рынок.png'],
+      ['btn_end_day',        'new graphics/нижняя кнопка закончить день.png'],
+      ['btn_map',            'new graphics/нижняя кнопка карта.png'],
+      ['btn_tavern',         'new graphics/кнопка таверна.png'],
+
       // Фоны (SVG — векторные, масштабируются без потерь при любом размере окна)
       ['bg_agency',   'assets/art/backgrounds/agency_office.svg'],
       ['bg_tender',   'assets/art/backgrounds/tender_room.svg'],
