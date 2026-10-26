@@ -154,11 +154,6 @@ docs/                   документация
 - `SCENARIO.md` — сценарий прохождения для itch.io
 - `ASSETS.md` — реестр 26 ассетов с авторами и лицензиями
 - `docs/ai-report.md` — отчёт об использовании ИИ (п. 3.9 регламента)
-- `docs/checklist.md` / `docs/design/checklist.md` — чек-листы сдачи
-- `docs/balance.md` — формулы баланса (ссылки в коде)
-- `docs/content.md` — контент: заказы, монстры, тексты (ссылки в коде)
-- `docs/design/audio.md` — аудио-спецификация
-- `docs/design/ui.md` — UI-спецификация
 - `LICENSE` — MIT
 
 ---
