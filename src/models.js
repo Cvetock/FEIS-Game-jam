@@ -70,7 +70,7 @@ window.Models = (function () {
   }
 
   function uid() { return Utils.uid(); }
-  function rosterCap(agency) { return 3 + agency.upgrades.stables; } // Было 4, теперь 3
+  function rosterCap(agency) { return 3 + agency.upgrades.stables; }
   function riskLabel(difficulty) {
     if (difficulty <= 3) return 'Низкий';
     if (difficulty === 4) return 'Средний';
@@ -78,13 +78,17 @@ window.Models = (function () {
     return 'Критический';
   }
 
-  function createMonster(forceSpecies, trainingLevel, difficulty = 'normal') {
+  function createMonster(forceSpecies, trainingLevel, difficulty = 'normal', isStarter = false) {
     const key = forceSpecies || Utils.pick(Object.keys(SPECIES));
     const sp = SPECIES[key];
 
     let minBase = 4, maxBase = 14;
     if (difficulty === 'hard') { minBase = 2; maxBase = 10; }
     if (difficulty === 'easy') { minBase = 6; maxBase = 16; }
+
+    // Делаем стартового монстра очень слабым
+    if (isStarter) { minBase = 1; maxBase = 3; }
+
     const base = Utils.randInt(minBase, maxBase);
 
     const stats = {
@@ -162,14 +166,13 @@ window.Models = (function () {
       stats: { questsDone: 0, goldEarned: 0, losses: 0, overkills: 0, interceptedTotal: 0, missions: [] }
     };
 
-    // В начале теперь только 1 монстр
-    agency.monsters.push(createMonster(null, upgrades.training, difficulty));
+    // Передаем флаг isStarter = true
+    agency.monsters.push(createMonster(null, upgrades.training, difficulty, true));
     generateQuests(agency);
     agency.candidates = generateCandidates(agency);
     return agency;
   }
 
-  // Проверка требований монстра при попытке найма (если в команде нет нужного вида)
   function checkHirePreference(pref, agency) {
     const roster = agency.monsters.map(m => m.speciesKey);
     const has = (...types) => types.some(t => roster.includes(t));
@@ -219,7 +222,6 @@ window.Models = (function () {
     if (m.status === 'busy') return { success: false, reason: 'Монстр занят на задании' };
     if (m.injuryDays > 0) return { success: false, reason: 'Нельзя увольнять раненых! Вылечите его.' };
 
-    // Возвращаем экипировку в сумку
     ['weapon', 'armor', 'amulet'].forEach(slot => {
         if (m.equipment[slot]) agency.inventory.push(m.equipment[slot]);
     });
@@ -244,10 +246,9 @@ window.Models = (function () {
 
   function hireUndead(agency) {
     if (agency.monsters.length >= rosterCap(agency)) return { success: false, reason: 'Стойла переполнены!' };
-    const cost = 150;
-    if (agency.gold < cost) return { success: false, reason: 'Нужно 150 золота!' };
+    if (agency.gold < 150) return { success: false, reason: 'Нужно 150 золота!' };
 
-    agency.gold -= cost;
+    agency.gold -= 150;
     const species = Utils.chance(0.7) ? 'skeleton' : 'vampire';
     const monster = createMonster(species, agency.upgrades.training, agency.difficulty);
     if (agency.upgrades.crypta > 0) { monster.level = agency.upgrades.crypta + 1; monster.stats.str++; monster.stats.int++; }
@@ -320,6 +321,7 @@ window.Models = (function () {
 
   function buyItem(agency, itemId) {
     const item = getItem(itemId);
+    if (!item) return { success: false, reason: 'Предмет не найден' };
     if (agency.gold < item.price) return { success: false, reason: 'Недостаточно золота!' };
     agency.gold -= item.price;
     agency.inventory.push(itemId);
@@ -332,7 +334,6 @@ window.Models = (function () {
 
     if (monster.speciesKey === 'slime') v += (agency.upgrades.sewer || 0);
     if (monster.speciesKey === 'skeleton') v += (agency.upgrades.crypta || 0);
-
     if (quest.species.length && quest.species.indexOf(monster.speciesKey) === -1) v -= 2;
 
     const t = monster.traits[0];
@@ -388,7 +389,6 @@ window.Models = (function () {
 
   function calculateGroupResult(monsters, quest, agency) {
     let totalStat = 0, totalInjuryMod = 0, hasClumsy = false;
-
     monsters.forEach(m => {
       totalStat += effectiveStat(m, quest, agency);
       totalInjuryMod += equipmentInjuryMod(m);
@@ -458,7 +458,6 @@ window.Models = (function () {
   function calculateResult(monster, quest, agency) { return calculateGroupResult([monster], quest, agency); }
 
   function applyMissionResult(agency, r) {
-    // Золото копим в dayStats, но не зачисляем в agency.gold
     agency.dayStats.goldEarned += r.gold;
     agency.quests = agency.quests.filter(q => q.id !== r.questId);
 
@@ -483,7 +482,6 @@ window.Models = (function () {
       } else {
         m.missions++;
 
-        // Получение опыта и повышение уровня (+1 ко всем статам)
         if (r.type === 'success' || r.type === 'overkill') {
             m.xp = (m.xp || 0) + 1;
             if (m.xp >= m.level * 2) {
@@ -495,13 +493,13 @@ window.Models = (function () {
                 m.stats.luck++;
             }
         }
-        
+
         if (r.type === 'overkill') m.overkillCount++;
         if (r.injury) {
             m.injuryDays = agency.difficulty === 'hard' ? 3 : (agency.difficulty === 'easy' ? 1 : 2);
             m.status = 'injured';
         } else {
-            m.status = 'busy'; 
+            m.status = 'busy';
         }
       }
       if (m.temp) { m.temp.missions--; if (m.temp.missions <= 0) m.temp = null; }
@@ -511,13 +509,10 @@ window.Models = (function () {
   }
 
   function nextDay(agency) {
-    // В конце дня зачисляем всё заработанное золото
     agency.gold += agency.dayStats.goldEarned;
     agency.stats.goldEarned += agency.dayStats.goldEarned;
-      
     agency.day++;
-    
-    // Обработка травм
+
     agency.monsters.forEach(m => {
       if (m.injuryDays > 0) {
           m.injuryDays--;
