@@ -85,8 +85,6 @@ window.Models = (function () {
     let minBase = 4, maxBase = 14;
     if (difficulty === 'hard') { minBase = 2; maxBase = 10; }
     if (difficulty === 'easy') { minBase = 6; maxBase = 16; }
-
-    // Делаем стартового монстра очень слабым
     if (isStarter) { minBase = 1; maxBase = 3; }
 
     const base = Utils.randInt(minBase, maxBase);
@@ -166,7 +164,6 @@ window.Models = (function () {
       stats: { questsDone: 0, goldEarned: 0, losses: 0, overkills: 0, interceptedTotal: 0, missions: [] }
     };
 
-    // Передаем флаг isStarter = true
     agency.monsters.push(createMonster(null, upgrades.training, difficulty, true));
     generateQuests(agency);
     agency.candidates = generateCandidates(agency);
@@ -521,7 +518,7 @@ window.Models = (function () {
           m.status = 'idle';
       }
     });
-    
+
     advanceThreat(agency);
     agency.interviewsLeft = 3;
     agency.dayStats = freshDayStats();
@@ -549,9 +546,9 @@ window.Models = (function () {
       aiRoster.push(m);
     }
     const quest = makeQuest(Content.TENDER_QUEST);
-    const aiChampion = aiRoster.slice().sort((a, b) => { 
-      const aiAgency = { upgrades: { forge: 3, intel: 1, lie_school: 0, stables: 0 } };
-      return evaluateScore(b, quest, aiAgency) - evaluateScore(a, quest, aiAgency); 
+    const aiChampion = aiRoster.slice().sort((a, b) => {
+      const aiAgency = { monsters: aiRoster, upgrades: { forge: 3, intel: 1, lie_school: 0, stables: 0 } };
+      return evaluateScore(b, quest, aiAgency) - evaluateScore(a, quest, aiAgency);
     })[0];
 
     return {
@@ -566,7 +563,7 @@ window.Models = (function () {
     const player = agency.monsters.find(m => m.id === tender.playerChampionId) || agency.monsters[0];
     const quest = tender.quest;
     const playerScore = evaluateScore(player, quest, agency);
-    const aiAgency = { upgrades: { forge: 3, intel: 1, lie_school: 0, stables: 0 } };
+    const aiAgency = { monsters: tender.aiRoster, upgrades: { forge: 3, intel: 1, lie_school: 0, stables: 0 } };
     const aiScore = evaluateScore(tender.aiChampion, quest, aiAgency) + 3;
 
     function reportFor(monster, score) {
@@ -589,7 +586,7 @@ window.Models = (function () {
     isThreatDefeat, createMonster, createAgency, generateQuests,
     generateCandidates, tryHire, buyUpgrade, hireUndead, fireMonster,
     getItem, itemBonus, equipmentInjuryMod, equipItem, unequipItem,
-    useItem, buyItem, successChance, honestyChance, overkillChance, calculateResult,
+    useItem, buyItem, effectiveStat, effectiveIntel, successChance, honestyChance, overkillChance, calculateResult,
     calculateGroupResult, groupSuccessChance, getRefusalReason, applyMissionResult, nextDay, evaluateScore,
     createTender, resolveTender
   };
