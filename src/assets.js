@@ -77,11 +77,13 @@ window.Assets = {
       ['mon_vampire',  'assets/art/monsters/вампир.png'],
 
       // Задания (только 5 типов нарисованы художником)
-      ['quest_farm',    'assets/art/missions/farm.png'],
-      ['quest_caravan', 'assets/art/missions/caravan.png'],
-      ['quest_cave',    'assets/art/missions/caves.png'],
-      ['quest_ruins',   'assets/art/missions/ruins.png'],
-      ['quest_citadel', 'assets/art/missions/Citadel.png'],
+      ['quest_farm',      'assets/art/missions/задание. ферма.png'],
+      ['quest_caravan',   'assets/art/missions/задание. караван.png'],
+      ['quest_cave',      'assets/art/missions/задание. пещера.png'],
+      ['quest_ruins',     'assets/art/missions/задание. руины.png'],
+      ['quest_citadel',   'assets/art/missions/задание. цитадель.png'],
+      ['quest_stables',   'assets/art/missions/задание. конюшни.png'],
+      ['quest_lieschool', 'assets/art/missions/задание. школа лжи.png'],
 
       // Предметы (пригодятся для экипировки)
       ['item_club',          'assets/art/items/Club.png'],

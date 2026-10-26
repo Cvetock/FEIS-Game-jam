@@ -6,7 +6,7 @@
   const T = Renderer.THEME;
   const SAVE_KEY = 'feis_last_human_v1';
 
-  const TOP_FULL = 260; // Увеличен сдвиг, чтобы полностью спрятать увеличенные рамки
+  const TOP_FULL = 260;
   const TOP_MINI = 0;
   const SLOTS = 6;
 
@@ -18,11 +18,10 @@
   function centreY(h) { return Math.round((H - h) / 2); }
 
   const QUEST_ART = {
-    farm: 'quest_farm', village: 'quest_farm', forest: 'quest_farm',
-    caravan: 'quest_caravan', warehouse: 'quest_caravan', bazar: 'quest_caravan',
-    cave: 'quest_cave', sewer: 'quest_cave',
-    ruins: 'quest_ruins',
-    citadel: 'quest_citadel', tower: 'quest_citadel', city: 'quest_citadel', ritual: 'quest_citadel'
+    farm: 'quest_farm', caravan: 'quest_caravan',
+    stables: 'quest_stables', cave: 'quest_cave',
+    ruins: 'quest_ruins', citadel: 'quest_citadel',
+    lieschool: 'quest_lieschool'
   };
 
   const STAGE_INK = { 1: '#3f6b2a', 2: '#8a6d1a', 3: '#8a4a12', 4: '#7a1f1f' };
@@ -257,12 +256,14 @@
 
     Renderer.ctx.save();
 
-    // ── Статичные элементы (не зависят от сдвига offset) ──
+    // Статичные элементы (не прячутся)
     Renderer.text('ДЕНЬ ' + a.day + '/' + a.maxDays + ' · КАЗНА: ' + a.gold + ' зол.', 20, 30, { color: '#e7d7ae', font: 'bold 16px Georgia' });
     Renderer.text('УГРОЗА: ' + Math.round(a.threat * 100) + '%', 20, 55, { color: STAGE_LIGHT[Models.threatStage(a.threat)], font: 'bold 16px Georgia' });
+
+    // Кнопка подсказки под угрозой
     button(20, 70, 180, 25, 'СПРАВКА ПО СТАТАМ', () => { showStatsHelp = true; }, { variant: 'ghost', font: 'bold 11px Georgia' });
 
-    // Статичная кнопка сворачивания
+    // Кнопка-свиток всегда сверху (не сдвигается вместе с панелью)
     const btnW = 55, btnH = 130;
     Renderer.drawImage('btn_collapse', W - btnW - 30, 10, btnW, btnH);
     addArea(W - btnW - 30, 10, btnW, btnH, () => {
@@ -270,7 +271,7 @@
       Audio.playSfx('pick');
     });
 
-    // ── Элементы, которые уезжают наверх ──
+    // ── Блок, который уезжает наверх ──
     Renderer.ctx.translate(0, -offset);
 
     // Увеличенные размеры рамок
@@ -297,12 +298,22 @@
              Renderer.roundRect(x + 18, yOffset + 24 + yHoverOff, slotW - 36, slotW - 36, 4, 'rgba(239, 68, 68, 0.4)');
            }
 
-           // Центрирование портрета внутри рамки
            const portraitX = x + 25;
            const portraitY = yOffset + 55 + yHoverOff;
            const portraitSize = 105;
-
            Renderer.drawImage('mon_' + m.speciesKey, portraitX, portraitY, portraitSize, portraitSize);
+
+           // 🎛️ НАСТРОЙКА СТАТУСА В РАМКЕ ОТРЯДА
+           let topStatus = '';
+           let topStatusColor = '';
+           if (m.injuryDays > 0) { topStatus = `РАНЕН (${m.injuryDays}д)`; topStatusColor = '#ef4444'; }
+           else if (m.status === 'busy') { topStatus = 'ОТДЫХАЕТ'; topStatusColor = '#f5c542'; }
+
+           if (topStatus) {
+               Renderer.text(topStatus, x + slotW / 2, yOffset + 185 + yHoverOff, {
+                   align: 'center', color: topStatusColor, font: 'bold 12px system-ui'
+               });
+           }
 
            addArea(x, yOffset - offset, slotW, slotH, () => {
              selectedMonsterViewId = m.id;
@@ -314,34 +325,41 @@
     Renderer.ctx.restore();
   }
 
+  // 🎛️ НАСТРОЙКА ПОЛОЖЕНИЯ И РАЗМЕРА НИЖНИХ КНОПОК
   function drawBottomBar(a) {
-    const barY = H - 110;
-    Renderer.gradientRect(0, barY, W, 110, 'rgba(15, 10, 6, 0)', 'rgba(15, 10, 6, 0.95)');
+    const barY = H - 130;
+    Renderer.gradientRect(0, barY, W, 130, 'rgba(15, 10, 6, 0)', 'rgba(15, 10, 6, 0.95)');
 
+    // w, h — ширина и высота конкретной кнопки
+    // offsetX — сдвиг влево (с минусом) или вправо (с плюсом)
+    // offsetY — сдвиг вверх (с минусом) или вниз (с плюсом)
     const btns = [
-      { id: 'shop', img: 'btn_shop', w: 230, h: 80, tab: 'shop' },
-      { id: 'market', img: 'btn_market', w: 230, h: 80, tab: 'items' },
-      { id: 'endday', img: 'btn_end_day', w: 420, h: 95, action: () => { showEndDayConfirm = true; } },
-      { id: 'map', img: 'btn_map', w: 230, h: 80, tab: 'quests' },
-      { id: 'tavern', img: 'btn_tavern', w: 230, h: 80, tab: 'hire' }
+      { id: 'shop', img: 'btn_shop', w: 230, h: 100, offsetX: 20, offsetY: -2, tab: 'shop' },
+      { id: 'market', img: 'btn_market', w: 230, h: 100, offsetX: 20, offsetY: 0, tab: 'items' },
+      { id: 'endday', img: 'btn_end_day', w: 400, h: 130, offsetX: 20, offsetY: -10, action: () => { showEndDayConfirm = true; } },
+      { id: 'map', img: 'btn_map', w: 260, h: 120, offsetX: 0, offsetY: 0, tab: 'quests' },
+      { id: 'tavern', img: 'btn_tavern', w: 230, h: 105, offsetX: -25, offsetY: 0, tab: 'hire' }
     ];
 
-    const btnGap = -5;
-    const totalW = 230 * 4 + 420 + btnGap * 4;
+    const btnGap = -5; // Базовое расстояние между кнопками
+    const totalW = btns.reduce((sum, b) => sum + b.w, 0) + btnGap * (btns.length - 1);
     let currentX = centreX(totalW);
 
     btns.forEach(b => {
-      const y = barY + (110 - b.h) / 2;
-      const hovered = hoverRect(currentX, y, b.w, b.h);
+      // Базовая позиция + твои индивидуальные сдвиги
+      const x = currentX + (b.offsetX || 0);
+      const y = barY + (130 - b.h) / 2 + (b.offsetY || 0);
+
+      const hovered = hoverRect(x, y, b.w, b.h);
       const active = b.tab && currentTab === b.tab;
 
       if (hovered || active) {
-        Renderer.drawImage(b.img, currentX - b.w*0.025, y - b.h*0.025, b.w * 1.05, b.h * 1.05);
+        Renderer.drawImage(b.img, x - b.w*0.025, y - b.h*0.025, b.w * 1.05, b.h * 1.05);
       } else {
-        Renderer.drawImage(b.img, currentX, y, b.w, b.h);
+        Renderer.drawImage(b.img, x, y, b.w, b.h);
       }
 
-      addArea(currentX, y, b.w, b.h, () => {
+      addArea(x, y, b.w, b.h, () => {
         Audio.playSfx('click');
         if (b.tab) currentTab = b.tab;
         if (b.action) b.action();
@@ -399,6 +417,7 @@
        Renderer.ink(cand.name + ' [Ур.' + cand.level + ']', x + cardW / 2, y + 130, { align: 'center', font: 'bold 18px Georgia' });
        Renderer.text('[' + cand.speciesLabel + ']', x + cardW / 2, y + 148, { color: T.inkSoft, align: 'center', font: '12px Georgia' });
        Renderer.text('Черта: ' + cand.traits[0], x + cardW / 2, y + 165, { color: '#6b4a18', align: 'center', font: 'italic 12px Georgia' });
+       // Каприз скрыт!
 
        const stats = [['СИЛА', cand.stats.str], ['ЛОВ', cand.stats.agi], ['ИНТ', cand.stats.int], ['УДА', cand.stats.luck]];
        stats.forEach(function (s, j) {
@@ -436,23 +455,29 @@
     }
   }
 
+  // 🎛️ НАСТРОЙКА РАЗМЕРОВ И ПОЛОЖЕНИЯ КАРТОЧЕК ЗАДАНИЙ
   function drawQuestsTab(a, r) {
     Renderer.ink('Карта заданий', r.x, r.y, { font: 'bold 26px Georgia' });
     Renderer.text('перехват ' + Math.round(Models.interceptChance(a) * 100) + '%', r.x + r.w, r.y, { color: T.inkSoft, align: 'right', font: 'bold 14px Georgia' });
 
-    const qW = (r.w - 30) / 2;
-    const qH = 110;
+    // Динамический расчет ширины/высоты под 5 заданий
+    const cols = a.quests.length > 4 ? 3 : 2;
+    const gap = 15;
+    const qW = (r.w - gap * (cols - 1)) / cols;
+    const qH = a.quests.length > 4 ? 90 : 110;
 
     a.quests.forEach((q, i) => {
-      const col = i % 2;
-      const row = Math.floor(i / 2);
-      const x = r.x + col * (qW + 30);
-      const y = r.y + 30 + row * (qH + 15);
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = r.x + col * (qW + gap);
+      const y = r.y + 30 + row * (qH + gap);
       drawQuestNote(a, q, x, y, qW, qH);
     });
 
     const quest = a.quests.find(q => q.id === selectedQuestId);
-    const panelY = r.y + 30 + 2 * (qH + 15);
+
+    // Смещение панели отправки вниз, чтобы не залезала на карточки
+    const panelY = r.y + 30 + 2 * (qH + gap) - 10;
 
     Renderer.rect(r.x, panelY, r.w, 1, 'rgba(90,60,25,0.3)');
 
@@ -481,8 +506,12 @@
         onClick: () => {
           if (selected) {
              selectedMonsterIds = selectedMonsterIds.filter(id => id !== m.id);
-          } else if (selectedMonsterIds.length < 3) {
+          } else {
              if (!quest) { showToast('Сначала выберите заказ!'); return; }
+
+             // Ограничения для спецзаданий
+             if (quest.soloOnly && selectedMonsterIds.length >= 1) { Audio.playSfx('reject'); showToast('Суперзадание: только 1 монстр!'); return; }
+
              const refusal = Models.getRefusalReason(m, quest, a);
              if (refusal) {
                  Audio.playSfx('reject');
@@ -498,7 +527,7 @@
       Renderer.drawMonsterIcon('mon_' + m.speciesKey, x + 5, y + 15, 45);
       Renderer.ink(m.name, x + 55, y + 25, { font: 'bold 13px Georgia' });
 
-      const statMap = { str: 'СИЛА', agi: 'ЛОВКОСТЬ', int: 'ИНТЕЛЛЕКТ', luck: 'УДАЧА' };
+      const statMap = { str: 'СИЛ', agi: 'ЛОВ', int: 'ИНТ', luck: 'УДА' };
       let statText = '';
       let statColor = T.inkSoft;
 
@@ -517,11 +546,19 @@
       Renderer.text(injured ? `ранен (${m.injuryDays}д)` : (disabled ? 'отдыхает' : statText), x + 55, y + 45, { color: (disabled||injured) ? '#7a1f1f' : statColor, font: '10px system-ui' });
     });
 
+    let btnDisabled = !quest || selectedMonsterIds.length === 0;
+    let btnReason = !quest ? 'Выберите заказ' : 'Выберите монстра';
+
+    if (quest && quest.groupOnly && selectedMonsterIds.length < 2) {
+        btnDisabled = true;
+        btnReason = 'Только для группы (2+)';
+    }
+
     const btnW = 200;
     button(r.x + r.w - btnW, panelY + 50, btnW, 55, 'ОТПРАВИТЬ', sendMission, {
       font: 'bold 16px Georgia',
-      disabled: !quest || selectedMonsterIds.length === 0,
-      reason: !quest ? 'Выберите заказ' : 'Выберите монстра'
+      disabled: btnDisabled,
+      reason: btnReason
     });
   }
 
@@ -542,18 +579,23 @@
     });
 
     const art = QUEST_ART[q.type];
-    if (art) Renderer.drawIcon(art, x + 10, y + 15, 65, 65, { label: q.type, color: '#3a2a1a' });
+    if (art) Renderer.drawIcon(art, x + 10, y + 15, 70, 80, { label: q.type, color: '#3a2a1a' });
     else {
       Renderer.roundRect(x + 10, y + 15, 65, 65, 5, 'rgba(90,60,25,0.2)');
       Renderer.ink(q.type.substring(0, 2).toUpperCase(), x + 42, y + 50, { align: 'center', font: 'bold 14px Georgia' });
     }
 
-    Renderer.ink(q.title, x + 85, y + 30, { font: 'bold 14px Georgia' });
-    Renderer.text('Сложность ' + q.difficulty + ' · ' + q.risk, x + 85, y + 50, { color: T.inkSoft, font: '11px system-ui' });
-    Renderer.ink(q.reward + ' зол.', x + w - 15, y + 30, { align: 'right', font: 'bold 16px Georgia' });
+    // Подгоняем высоту текстов в зависимости от того, 4 или 5 заданий на доске
+    const tY = h === 90 ? 25 : 30;
 
-    if (q.species && q.species.length) {
-      Renderer.text('Рекомендуется: ' + q.species.map(s => Models.SPECIES[s].label).join('/') + ' (+2 к статам)', x + 85, y + 75, { color: '#6b4a18', font: 'italic 11px Georgia' });
+    Renderer.ink(q.title, x + 85, y + tY, { font: 'bold 13px Georgia' });
+    Renderer.text('Сложность ' + q.difficulty + ' · ' + q.risk, x + 85, y + tY + 20, { color: T.inkSoft, font: '11px system-ui' });
+    Renderer.ink(q.reward + ' зол.', x + w - 15, y + tY, { align: 'right', font: 'bold 16px Georgia' });
+
+    if (q.groupOnly) Renderer.text('ТОЛЬКО ДЛЯ ГРУППЫ', x + 85, y + tY + 45, { color: '#a855f7', font: 'bold 10px system-ui' });
+    else if (q.soloOnly) Renderer.text('СУПЕРЗАДАНИЕ (СОЛО)', x + 85, y + tY + 45, { color: '#ef4444', font: 'bold 10px system-ui' });
+    else if (q.species && q.species.length) {
+      Renderer.text('Рекомендуется: ' + q.species.map(s => Models.SPECIES[s].label).join('/') + ' (+2 к статам)', x + 85, y + tY + 45, { color: '#6b4a18', font: 'italic 11px Georgia' });
     }
   }
 
@@ -587,7 +629,8 @@
       const conf = Models.UPGRADES_CONFIG[key];
       const lvl = a.upgrades[key];
       const maxed = lvl >= conf.maxLevel;
-      const cost = conf.baseCost * (lvl + 1);
+      // Стоимость 1.5х каждый уровень
+      const cost = Math.floor(conf.baseCost * Math.pow(1.5, lvl));
       const affordable = a.gold >= cost;
 
       noteCard(x, y, cardW, cardH, {});

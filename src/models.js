@@ -19,16 +19,15 @@ window.Models = (function () {
   ];
 
   const QUEST_STATS = {
-    farm: 'str', caravan: 'str', warehouse: 'str', bridge: 'str', bazar: 'str', citadel: 'str',
-    cave: 'int', ruins: 'int', sewer: 'int', tower: 'int', ritual: 'int',
-    village: 'agi', city: 'agi', forest: 'agi'
+    farm: 'str', caravan: 'str', stables: 'agi',
+    cave: 'int', ruins: 'int', citadel: 'int', lieschool: 'int'
   };
 
-  const UNDERGROUND = ['cave', 'ruins', 'citadel'];
+  const UNDERGROUND = ['cave', 'ruins', 'citadel', 'lieschool'];
 
   const UPGRADES_CONFIG = {
     stables:    { name: 'Стойла',            maxLevel: 2, baseCost: 50,  desc: '+1 место в штате' },
-    forge:      { name: 'Кузня',             maxLevel: 3, baseCost: 60,  desc: '+2 к статам за уровень' },
+    forge:      { name: 'Кузня',             maxLevel: 3, baseCost: 60,  desc: 'Доп. статы при левелапе' },
     sewer:      { name: 'Канализация',       maxLevel: 2, baseCost: 40,  desc: 'Слизи: +1/+2 к статам' },
     crypta:     { name: 'Крипта',            maxLevel: 2, baseCost: 50,  desc: 'Скелеты: +1/+2 к статам' },
     training:   { name: 'Тренировочный зал', maxLevel: 2, baseCost: 40,  desc: 'Новые рекруты: +1/+2 стат' },
@@ -108,21 +107,43 @@ window.Models = (function () {
   function makeQuest(template) {
     return {
       id: uid(), title: template.title, difficulty: template.diff, reward: template.reward, baseReward: template.reward,
-      risk: riskLabel(template.diff), type: template.type, species: (template.species || []).slice(), intercepted: false
+      risk: riskLabel(template.diff), type: template.type, species: (template.species || []).slice(), intercepted: false,
+      groupOnly: false, soloOnly: false
     };
   }
 
   function generateQuests(agency) {
     agency.quests = [];
     const board = Utils.shuffle(Content.QUESTS.slice()).slice(0, 4);
-    const chance = interceptChance(agency);
-    let intercepted = 0;
 
     board.forEach(function (template) {
       const q = makeQuest(template);
-      if (Utils.chance(chance)) { q.intercepted = true; q.reward = 0; intercepted++; }
       agency.quests.push(q);
     });
+
+    // 5-е специальное задание (30% шанс)
+    if (Utils.chance(0.3)) {
+       const isGroup = Utils.chance(0.5);
+       const extraTemp = Utils.pick(Content.QUESTS);
+       const spQ = makeQuest(extraTemp);
+       spQ.difficulty += 2; // Сложнее
+       spQ.reward = Math.floor(spQ.reward * 2.5); // Награда х2.5
+       if (isGroup) {
+         spQ.title = '[ГРУППА] ' + spQ.title;
+         spQ.groupOnly = true;
+       } else {
+         spQ.title = '[СОЛО-ЭПИК] ' + spQ.title;
+         spQ.soloOnly = true;
+       }
+       agency.quests.push(spQ);
+    }
+
+    const chance = interceptChance(agency);
+    let intercepted = 0;
+    agency.quests.forEach(q => {
+      if (Utils.chance(chance)) { q.intercepted = true; q.reward = 0; intercepted++; }
+    });
+
     agency.dayStats.intercepted = intercepted;
     agency.stats.interceptedTotal += intercepted;
   }
@@ -161,7 +182,7 @@ window.Models = (function () {
       monsters: [], candidates: [], quests: [], log: [], upgrades: upgrades,
       inventory: ['club'], interviewsLeft: 3, lastResult: null, dayStats: freshDayStats(),
       stats: { questsDone: 0, goldEarned: 0, losses: 0, overkills: 0, interceptedTotal: 0, missions: [] },
-      tutorials: {} // Флаги для обучения
+      tutorials: {}
     };
 
     agency.monsters.push(createMonster(null, upgrades.training, difficulty, true));
@@ -199,8 +220,6 @@ window.Models = (function () {
   }
 
   function getRefusalReason(monster, quest, agency) {
-    const roster = agency.monsters.map(m => m.speciesKey);
-    const has = (...types) => types.some(t => roster.includes(t));
     switch (monster.preference) {
       case 'не_лезть_в_пещеры': if (quest && UNDERGROUND.includes(quest.type)) return 'Отказывается лезть в подземелья!'; break;
       case 'только_подземелья': if (quest && !UNDERGROUND.includes(quest.type)) return 'Согласен только на подземелья!'; break;
@@ -233,7 +252,9 @@ window.Models = (function () {
     const lvl = agency.upgrades[key];
     if (lvl >= conf.maxLevel) return { success: false, reason: 'Максимальный уровень!' };
 
-    const cost = conf.baseCost * (lvl + 1);
+    // Стоимость увеличивается на 50% с каждым уровнем
+    const cost = Math.floor(conf.baseCost * Math.pow(1.5, lvl));
+
     if (agency.gold < cost) return { success: false, reason: 'Недостаточно золота!' };
 
     agency.gold -= cost;
@@ -327,19 +348,19 @@ window.Models = (function () {
 
   function effectiveStat(monster, quest, agency) {
     const statKey = QUEST_STATS[quest.type] || 'str';
-    let v = monster.stats[statKey] + agency.upgrades.forge * 2 + itemBonus(monster, statKey);
+    let v = monster.stats[statKey] + itemBonus(monster, statKey);
 
     if (monster.speciesKey === 'slime') v += (agency.upgrades.sewer || 0);
     if (monster.speciesKey === 'skeleton') v += (agency.upgrades.crypta || 0);
     if (quest.species.length && quest.species.indexOf(monster.speciesKey) === -1) v -= 2;
 
     const t = monster.traits[0];
-    if (t === 'устрашающий' && ['farm', 'village', 'bridge', 'bazar'].indexOf(quest.type) !== -1) v += 2;
+    if (t === 'устрашающий' && ['farm', 'village', 'bridge', 'bazar', 'caravan'].indexOf(quest.type) !== -1) v += 2;
     if (t === 'трусливый') v -= 2;
     if (t === 'тяжеловес' && statKey === 'str') v += 3;
     if (t === 'мудрый' && statKey === 'int') v += 2;
     if (t === 'глупый' && statKey === 'int') v -= 2;
-    if (t === 'проворный' && ['caravan', 'city'].indexOf(quest.type) !== -1) v += 2;
+    if (t === 'проворный' && ['caravan', 'city', 'stables'].indexOf(quest.type) !== -1) v += 2;
     if (t === 'храбрый' && agency.threat >= 0.4) v += 2;
     return v;
   }
@@ -435,12 +456,14 @@ window.Models = (function () {
     else if (type === 'injury') reportKey = 'injury';
     else if (type === 'lost') reportKey = 'lost';
     else {
-      if (type === 'success') reportKey = truthful ? 'success_honest' : 'success_lie';
-      else if (type === 'partial') reportKey = truthful ? 'partial_honest' : 'partial_lie';
-      else reportKey = truthful ? 'fail_honest' : 'fail_lie';
+      const suffix = truthful ? '_honest' : '_lie';
+      reportKey = type + '_' + quest.type + suffix;
     }
 
-    if (!Content.REPORTS[reportKey]) reportKey = 'overkill_farm';
+    if (!Content.REPORTS[reportKey]) {
+      if (type === 'overkill') reportKey = 'overkill_fallback';
+      else reportKey = type + (truthful ? '_honest' : '_lie');
+    }
 
     return {
       type: type, gold: gold, injury: injury,
@@ -448,7 +471,8 @@ window.Models = (function () {
       lied: !truthful, honesty: honest, int: effectiveIntel(bestIntMonster),
       monsterId: bestIntMonster.id, monsterName: bestIntMonster.name,
       speciesKey: bestIntMonster.speciesKey, speciesLabel: bestIntMonster.speciesLabel,
-      questId: quest.id, questTitle: quest.title, participants: monsters.map(m => m.id)
+      questId: quest.id, questTitle: quest.title, participantNames: monsters.map(m => m.name).join(', '),
+      participants: monsters.map(m => m.id)
     };
   }
 
@@ -481,18 +505,23 @@ window.Models = (function () {
       } else {
         m.missions++;
 
+        // Исправленная КУЗНЯ. Даем статы от левелапа + бонус кузни.
         if (r.type === 'success' || r.type === 'overkill') {
             m.xp = (m.xp || 0) + 1;
             if (m.xp >= m.level * 2) {
                 m.level++;
                 m.xp = 0;
 
-                const statKeys = ['str', 'agi', 'int', 'luck'];
+                let points = 1 + (agency.upgrades.forge || 0); // 1, 2, 3 или 4 очка
+                let givenStats = [];
                 const statLabels = { str: 'СИЛ', agi: 'ЛОВ', int: 'ИНТ', luck: 'УДА' };
-                const increased = Utils.pick(statKeys);
-                m.stats[increased]++;
 
-                levelUpMsgs.push(`${m.name} -> Ур. ${m.level} (+1 ${statLabels[increased]})`);
+                for(let i=0; i<points; i++) {
+                   const k = Utils.pick(['str', 'agi', 'int', 'luck']);
+                   m.stats[k]++;
+                   givenStats.push(statLabels[k]);
+                }
+                levelUpMsgs.push(`${m.name} -> Ур. ${m.level} (+${points} ст: ${givenStats.join(', ')})`);
             }
         }
 
@@ -508,7 +537,7 @@ window.Models = (function () {
     });
 
     agency.dayStats.missions.push({
-        monsterName: r.monsterName,
+        monsterName: r.participantNames, // Имена всей группы
         questTitle: r.questTitle,
         type: r.type,
         gold: r.gold,
