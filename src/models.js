@@ -69,7 +69,7 @@ window.Models = (function () {
   }
 
   function uid() { return Utils.uid(); }
-  function rosterCap(agency) { return 4 + agency.upgrades.stables; } // ИСПРАВЛЕНО: возвращаем 4 базу (4+2 = 6 макс)
+  function rosterCap(agency) { return 4 + agency.upgrades.stables; }
   function riskLabel(difficulty) {
     if (difficulty <= 3) return 'Низкий';
     if (difficulty === 4) return 'Средний';
@@ -160,7 +160,8 @@ window.Models = (function () {
       gold: startGold, rep: 0, level: 1, threat: startThreat,
       monsters: [], candidates: [], quests: [], log: [], upgrades: upgrades,
       inventory: ['club'], interviewsLeft: 3, lastResult: null, dayStats: freshDayStats(),
-      stats: { questsDone: 0, goldEarned: 0, losses: 0, overkills: 0, interceptedTotal: 0, missions: [] }
+      stats: { questsDone: 0, goldEarned: 0, losses: 0, overkills: 0, interceptedTotal: 0, missions: [] },
+      tutorials: {} // Флаги для обучения
     };
 
     agency.monsters.push(createMonster(null, upgrades.training, difficulty, true));
@@ -468,6 +469,8 @@ window.Models = (function () {
       agency.threat = Utils.clamp(agency.threat + penalty, 0, 1);
     }
 
+    let levelUpMsgs = [];
+
     (r.participants || [r.monsterId]).forEach(pid => {
       const m = agency.monsters.find(x => x.id === pid);
       if (!m) return;
@@ -483,10 +486,13 @@ window.Models = (function () {
             if (m.xp >= m.level * 2) {
                 m.level++;
                 m.xp = 0;
-                m.stats.str++;
-                m.stats.agi++;
-                m.stats.int++;
-                m.stats.luck++;
+
+                const statKeys = ['str', 'agi', 'int', 'luck'];
+                const statLabels = { str: 'СИЛ', agi: 'ЛОВ', int: 'ИНТ', luck: 'УДА' };
+                const increased = Utils.pick(statKeys);
+                m.stats[increased]++;
+
+                levelUpMsgs.push(`${m.name} -> Ур. ${m.level} (+1 ${statLabels[increased]})`);
             }
         }
 
@@ -501,7 +507,13 @@ window.Models = (function () {
       if (m.temp) { m.temp.missions--; if (m.temp.missions <= 0) m.temp = null; }
     });
 
-    agency.dayStats.missions.push({ monsterName: r.monsterName, questTitle: r.questTitle, type: r.type, gold: r.gold });
+    agency.dayStats.missions.push({
+        monsterName: r.monsterName,
+        questTitle: r.questTitle,
+        type: r.type,
+        gold: r.gold,
+        levelUps: levelUpMsgs.length ? levelUpMsgs : null
+    });
   }
 
   function nextDay(agency) {
