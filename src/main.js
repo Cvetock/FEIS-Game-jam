@@ -92,6 +92,9 @@
   let gameDifficulty = 'normal';
   let showStatsHelp = false;
 
+  // Флаг для звука лжи
+  let lieSoundPlayed = false;
+
   function inRect(p, x, y, w, h) { return p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h; }
   function hoverRect(x, y, w, h) { return inRect(Input.mouse, x, y, w, h); }
   function addArea(x, y, w, h, onClick) { hitAreas.push({ x, y, w, h, onClick }); }
@@ -210,8 +213,10 @@
     Renderer.rect(0, 0, W, Math.max(0, topH - 60), 'rgba(15,10,6,0.8)');
 
     Renderer.text('ДЕНЬ ' + a.day + '/' + a.maxDays + ' · КАЗНА: ' + a.gold + ' зол.', 20, 22, { color: '#e7d7ae', font: 'bold 12px Georgia' });
-    button(20, 35, 160, 25, 'СПРАВКА ПО СТАТАМ', () => { showStatsHelp = true; }, { variant: 'ghost', font: 'bold 10px Georgia' });
     Renderer.text('УГРОЗА: ' + Math.round(a.threat * 100) + '%', W - 150, 22, { color: STAGE_LIGHT[Models.threatStage(a.threat)], font: 'bold 12px Georgia' });
+
+    // Кнопка подсказки теперь под надписями, в левом верхнем углу
+    button(20, 35, 30, 25, '?', () => { showStatsHelp = true; }, { variant: 'ghost', font: 'bold 14px Georgia' });
 
     const startX = centreX((slotW + gap) * SLOTS - gap);
     const yOffset = topH - 100;
@@ -600,7 +605,6 @@
     else { Audio.playSfx('reject'); showToast(res.reason); }
   }
 
-  // ── Досье монстра ────────────────────────────────────────────────────────
   function drawMonsterView() {
     const a = Game.agency;
     const m = a.monsters.find(function (x) { return x.id === selectedMonsterViewId; });
@@ -618,8 +622,8 @@
       Renderer.paper(cX, cY, cW, cH, { r: 8, burn: 18 });
     }
 
-    // Кнопка НАЗАД в правом верхнем углу (сдвинута левее)
-    button(cX + cW - 240, cY + 40, 140, 45, 'НАЗАД', function () { popupSlot = null; setState('agency'); });
+    // Кнопка НАЗАД в правом верхнем углу
+    button(cX + cW - 160, cY + 40, 120, 45, 'НАЗАД', function () { popupSlot = null; setState('agency'); });
 
     const mX = cX + 80;
     const mY = cY + 50;
@@ -658,7 +662,7 @@
 
       noteCard(sx, sy, sw, sh, {
         pin: false,
-        selected: popupSlot === slot,
+        selected: popupSlot === slot, // Выделяем слот, если для него открыто окно
         onClick: () => { popupSlot = popupSlot === slot ? null : slot; Audio.playSfx('click'); }
       });
 
@@ -676,11 +680,13 @@
       }
     });
 
+    // Оставляем внизу только расходники
     Renderer.ink('РАСХОДНИКИ (СУМКА)', mX, mY + 360, { font: 'bold 18px Georgia' });
 
-    // Укороченная рамка сумки, чтобы не перекрывать кнопку Уволить
-    Renderer.roundRectStroke(mX, mY + 375, cW - 360, 65, 6, 'rgba(140, 100, 50, 0.4)', 2);
-    Renderer.roundRect(mX, mY + 375, cW - 360, 65, 6, 'rgba(30,20,10,0.1)');
+    // Ограничиваем рамку сумки, чтобы она не перекрывала кнопку увольнения
+    const sumkaWidth = cW - 360;
+    Renderer.roundRectStroke(mX, mY + 375, sumkaWidth, 65, 6, 'rgba(140, 100, 50, 0.4)', 2);
+    Renderer.roundRect(mX, mY + 375, sumkaWidth, 65, 6, 'rgba(30,20,10,0.1)');
 
     const bag = {};
     a.inventory.forEach(id => { bag[id] = (bag[id] || 0) + 1; });
@@ -699,18 +705,18 @@
           onClick: () => useItem(m, item.id)
         });
         Renderer.ink(item.name + (bag[item.id] > 1 ? ' ×' + bag[item.id] : ''), bx + 10, by + 20, { font: 'bold 12px Georgia' });
+
         Renderer.text(item.desc || 'применить', bx + 10, by + 40, { color: '#8a4a12', font: '11px system-ui' });
       });
     }
 
-    // Кнопка УВОЛИТЬ в правом нижнем углу (сдвинута левее)
-    button(cX + cW - 240, cY + cH - 85, 140, 45, 'УВОЛЬНИТЬ', function () {
+    // Кнопка УВОЛИТЬ в правом нижнем углу
+    button(cX + cW - 180, cY + cH - 85, 140, 45, 'УВОЛЬНИТЬ', function () {
       const res = Models.fireMonster(Game.agency, m.id);
       if (res.success) { Audio.playSfx('reject'); showToast(res.name + ' уволен.'); popupSlot = null; setState('agency'); }
       else { Audio.playSfx('reject'); showToast(res.reason); }
     }, { variant: 'danger', disabled: m.injuryDays > 0, reason: 'Нельзя увольнять раненых' });
 
-    // ── Отрисовка всплывающего окна (Popup) для выбора экипировки ──
     if (popupSlot) {
       Renderer.rect(0, 0, W, H, 'rgba(0,0,0,0.6)');
 
@@ -824,6 +830,7 @@
       Renderer.paper(cX, cY, cW, cH, { r: 8, burn: 20 });
     }
 
+    // Верхний блок
     Renderer.note(cX + 80, cY + 50, 70, 70, { pin: false });
     Renderer.drawMonsterIcon('mon_' + r.speciesKey, cX + 85, cY + 55, 60);
 
@@ -834,8 +841,16 @@
     Renderer.text('Задание: ' + r.questTitle, cX + 170, cY + 120, { color: '#6b4a18', font: 'italic 15px Georgia' });
     Renderer.text('День ' + a.day, cX + cW - 80, cY + 75, { color: '#7a6244', align: 'right', font: '14px Georgia' });
 
+    // Верхняя линия
     Renderer.rect(cX + 80, cY + 140, cW - 160, 1, 'rgba(90,60,25,0.4)');
 
+    // Воспроизведение звука лжи 1 раз
+    if (r.lied && reportTime > 0.1 && !lieSoundPlayed) {
+        Audio.playSfx('lie');
+        lieSoundPlayed = true;
+    }
+
+    // Текст отчёта
     const font = 'italic 26px Georgia';
     const full = '«' + r.reportText + '»';
     const lines = Renderer.wrapText(full, cW - 240, font);
@@ -1382,7 +1397,13 @@
     if (Game.state === next) return;
     const conf = TRANSITION_MAP[Game.state + '->' + next] || { type: 'fade', dur: 250 };
     transition = { type: conf.type, dur: conf.dur, t: 0, from: Game.state, to: next, switched: false };
-    Audio.playSfx('transition');
+
+    lieSoundPlayed = false;
+
+    if (next === 'mission' || next === 'report' || next === 'tender') {
+      // Тут можно добавить переключение на музыку 'экран отчета.mp3' или 'финальный тендер.mp3'
+      // Например: if (next === 'report') Audio.playMusic('report');
+    }
   }
 
   function enterState(to) {
@@ -1549,6 +1570,10 @@
     if (location.search.indexOf('debug') !== -1) document.body.classList.add('debug');
     await Assets.load();
     Audio.init();
+
+    // Включаем фоновую музыку, когда игрок хотя бы раз кликнет по экрану
+    document.addEventListener('click', () => { Audio.playMusic('main'); }, { once: true });
+
     Game.init('game');
     Input.init(Game.canvas);
     Renderer.init(Game.ctx);
