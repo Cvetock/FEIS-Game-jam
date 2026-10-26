@@ -256,14 +256,11 @@
 
     Renderer.ctx.save();
 
-    // Статичные элементы (не прячутся)
     Renderer.text('ДЕНЬ ' + a.day + '/' + a.maxDays + ' · КАЗНА: ' + a.gold + ' зол.', 20, 30, { color: '#e7d7ae', font: 'bold 16px Georgia' });
     Renderer.text('УГРОЗА: ' + Math.round(a.threat * 100) + '%', 20, 55, { color: STAGE_LIGHT[Models.threatStage(a.threat)], font: 'bold 16px Georgia' });
 
-    // Кнопка подсказки под угрозой
     button(20, 70, 180, 25, 'СПРАВКА ПО СТАТАМ', () => { showStatsHelp = true; }, { variant: 'ghost', font: 'bold 11px Georgia' });
 
-    // Кнопка-свиток всегда сверху (не сдвигается вместе с панелью)
     const btnW = 55, btnH = 130;
     Renderer.drawImage('btn_collapse', W - btnW - 30, 10, btnW, btnH);
     addArea(W - btnW - 30, 10, btnW, btnH, () => {
@@ -271,10 +268,8 @@
       Audio.playSfx('pick');
     });
 
-    // ── Блок, который уезжает наверх ──
     Renderer.ctx.translate(0, -offset);
 
-    // Увеличенные размеры рамок
     const slotW = 160;
     const slotH = 220;
     const gap = 15;
@@ -298,12 +293,11 @@
              Renderer.roundRect(x + 18, yOffset + 24 + yHoverOff, slotW - 36, slotW - 36, 4, 'rgba(239, 68, 68, 0.4)');
            }
 
-           const portraitX = x + 25;
+           const portraitX = x + 24;
            const portraitY = yOffset + 55 + yHoverOff;
            const portraitSize = 105;
            Renderer.drawImage('mon_' + m.speciesKey, portraitX, portraitY, portraitSize, portraitSize);
 
-           // 🎛️ НАСТРОЙКА СТАТУСА В РАМКЕ ОТРЯДА
            let topStatus = '';
            let topStatusColor = '';
            if (m.injuryDays > 0) { topStatus = `РАНЕН (${m.injuryDays}д)`; topStatusColor = '#ef4444'; }
@@ -325,14 +319,10 @@
     Renderer.ctx.restore();
   }
 
-  // 🎛️ НАСТРОЙКА ПОЛОЖЕНИЯ И РАЗМЕРА НИЖНИХ КНОПОК
   function drawBottomBar(a) {
     const barY = H - 130;
     Renderer.gradientRect(0, barY, W, 130, 'rgba(15, 10, 6, 0)', 'rgba(15, 10, 6, 0.95)');
 
-    // w, h — ширина и высота конкретной кнопки
-    // offsetX — сдвиг влево (с минусом) или вправо (с плюсом)
-    // offsetY — сдвиг вверх (с минусом) или вниз (с плюсом)
     const btns = [
       { id: 'shop', img: 'btn_shop', w: 230, h: 100, offsetX: 20, offsetY: -2, tab: 'shop' },
       { id: 'market', img: 'btn_market', w: 230, h: 100, offsetX: 20, offsetY: 0, tab: 'items' },
@@ -341,12 +331,11 @@
       { id: 'tavern', img: 'btn_tavern', w: 230, h: 105, offsetX: -25, offsetY: 0, tab: 'hire' }
     ];
 
-    const btnGap = -5; // Базовое расстояние между кнопками
+    const btnGap = -5;
     const totalW = btns.reduce((sum, b) => sum + b.w, 0) + btnGap * (btns.length - 1);
     let currentX = centreX(totalW);
 
     btns.forEach(b => {
-      // Базовая позиция + твои индивидуальные сдвиги
       const x = currentX + (b.offsetX || 0);
       const y = barY + (130 - b.h) / 2 + (b.offsetY || 0);
 
@@ -417,7 +406,6 @@
        Renderer.ink(cand.name + ' [Ур.' + cand.level + ']', x + cardW / 2, y + 130, { align: 'center', font: 'bold 18px Georgia' });
        Renderer.text('[' + cand.speciesLabel + ']', x + cardW / 2, y + 148, { color: T.inkSoft, align: 'center', font: '12px Georgia' });
        Renderer.text('Черта: ' + cand.traits[0], x + cardW / 2, y + 165, { color: '#6b4a18', align: 'center', font: 'italic 12px Georgia' });
-       // Каприз скрыт!
 
        const stats = [['СИЛА', cand.stats.str], ['ЛОВ', cand.stats.agi], ['ИНТ', cand.stats.int], ['УДА', cand.stats.luck]];
        stats.forEach(function (s, j) {
@@ -455,12 +443,10 @@
     }
   }
 
-  // 🎛️ НАСТРОЙКА РАЗМЕРОВ И ПОЛОЖЕНИЯ КАРТОЧЕК ЗАДАНИЙ
   function drawQuestsTab(a, r) {
     Renderer.ink('Карта заданий', r.x, r.y, { font: 'bold 26px Georgia' });
     Renderer.text('перехват ' + Math.round(Models.interceptChance(a) * 100) + '%', r.x + r.w, r.y, { color: T.inkSoft, align: 'right', font: 'bold 14px Georgia' });
 
-    // Динамический расчет ширины/высоты под 5 заданий
     const cols = a.quests.length > 4 ? 3 : 2;
     const gap = 15;
     const qW = (r.w - gap * (cols - 1)) / cols;
@@ -475,8 +461,6 @@
     });
 
     const quest = a.quests.find(q => q.id === selectedQuestId);
-
-    // Смещение панели отправки вниз, чтобы не залезала на карточки
     const panelY = r.y + 30 + 2 * (qH + gap) - 10;
 
     Renderer.rect(r.x, panelY, r.w, 1, 'rgba(90,60,25,0.3)');
@@ -509,7 +493,6 @@
           } else {
              if (!quest) { showToast('Сначала выберите заказ!'); return; }
 
-             // Ограничения для спецзаданий
              if (quest.soloOnly && selectedMonsterIds.length >= 1) { Audio.playSfx('reject'); showToast('Суперзадание: только 1 монстр!'); return; }
 
              const refusal = Models.getRefusalReason(m, quest, a);
@@ -585,7 +568,6 @@
       Renderer.ink(q.type.substring(0, 2).toUpperCase(), x + 42, y + 50, { align: 'center', font: 'bold 14px Georgia' });
     }
 
-    // Подгоняем высоту текстов в зависимости от того, 4 или 5 заданий на доске
     const tY = h === 90 ? 25 : 30;
 
     Renderer.ink(q.title, x + 85, y + tY, { font: 'bold 13px Georgia' });
@@ -629,7 +611,6 @@
       const conf = Models.UPGRADES_CONFIG[key];
       const lvl = a.upgrades[key];
       const maxed = lvl >= conf.maxLevel;
-      // Стоимость 1.5х каждый уровень
       const cost = Math.floor(conf.baseCost * Math.pow(1.5, lvl));
       const affordable = a.gold >= cost;
 
@@ -1163,13 +1144,15 @@
     const ai = tender.aiChampion;
     Renderer.drawMonsterIcon('mon_' + ai.speciesKey, leftX + 20, 340, 80);
     Renderer.ink(ai.name, leftX + 110, 380, { font: 'bold 22px Georgia' });
-    Renderer.text('[' + ai.speciesLabel + '] ИНТ ' + ai.stats.int, leftX + 110, 410, { color: T.inkSoft, font: '14px monospace' });
 
-    Renderer.text('Он выставит сильнейшего переговорщика.', leftX + 20, 460, { color: '#6b4a18', font: '14px Georgia' });
-    Renderer.text('Ваш отчёт оценивают по:', leftX + 20, 500, { color: '#6b4a18', font: '14px Georgia' });
-    Renderer.text('• сила против сложности 8', leftX + 40, 530, { color: '#6b4a18', font: '14px Georgia' });
-    Renderer.text('• честность (ИНТ 14+ / 8+ / ниже)', leftX + 40, 560, { color: '#6b4a18', font: '14px Georgia' });
-    Renderer.text('• совпадение с предпочтением', leftX + 40, 590, { color: '#6b4a18', font: '14px Georgia' });
+    // Эффективный Интеллект для врага
+    Renderer.text(`[${ai.speciesLabel}] ЭФФ. ИНТ: ${Models.effectiveIntel(ai)}`, leftX + 110, 410, { color: T.inkSoft, font: '14px monospace' });
+
+    Renderer.text('ПРАВИЛА ТЕНДЕРА (СУММА БАЛЛОВ):', leftX + 20, 460, { color: '#8a4a12', font: 'bold 14px Georgia' });
+    Renderer.text('• Характеристика: Эффективный стат минус сложность 8', leftX + 20, 490, { color: '#6b4a18', font: '14px Georgia' });
+    Renderer.text('• Честность: Эфф. ИНТ 14+ (+10 балл), 8-13 (+5), ниже (-5)', leftX + 20, 520, { color: '#6b4a18', font: '14px Georgia' });
+    Renderer.text('• Каприз: совпадает (+5 баллов), не совпадает (-5 баллов)', leftX + 20, 550, { color: '#6b4a18', font: '14px Georgia' });
+    Renderer.text('• Фактор случайности: от -5 до +5 баллов кубиком', leftX + 20, 580, { color: '#6b4a18', font: '14px Georgia' });
 
     const rightX = leftX + 520;
     Renderer.paper(rightX, 240, 480, 380, { r: 6, burn: 12 });
@@ -1190,7 +1173,12 @@
       });
       Renderer.drawMonsterIcon('mon_' + m.speciesKey, x + 5, y + 10, 50);
       Renderer.ink(m.name, x + 65, y + 25, { font: 'bold 14px Georgia' });
-      Renderer.text('ИНТ ' + m.stats.int + ' · СИЛ ' + m.stats.str, x + 65, y + 45, { color: T.inkSoft, font: '12px monospace' });
+
+      const effInt = Models.effectiveIntel(m);
+      const effStat = Models.effectiveStat(m, tender.quest, a);
+
+      Renderer.text(`ЭФФ. ИНТ: ${effInt} · ЭФФ. СТАТ: ${effStat}`, x + 65, y + 45, { color: T.inkSoft, font: '11px monospace' });
+
       const rate = tenderRating(m, a);
       Renderer.text(rate.text, x + 65, y + 60, { color: rate.color, font: 'bold 11px Georgia' });
     });

@@ -121,13 +121,12 @@ window.Models = (function () {
       agency.quests.push(q);
     });
 
-    // 5-е специальное задание (30% шанс)
     if (Utils.chance(0.3)) {
        const isGroup = Utils.chance(0.5);
        const extraTemp = Utils.pick(Content.QUESTS);
        const spQ = makeQuest(extraTemp);
-       spQ.difficulty += 2; // Сложнее
-       spQ.reward = Math.floor(spQ.reward * 2.5); // Награда х2.5
+       spQ.difficulty += 2;
+       spQ.reward = Math.floor(spQ.reward * 2.5);
        if (isGroup) {
          spQ.title = '[ГРУППА] ' + spQ.title;
          spQ.groupOnly = true;
@@ -252,7 +251,6 @@ window.Models = (function () {
     const lvl = agency.upgrades[key];
     if (lvl >= conf.maxLevel) return { success: false, reason: 'Максимальный уровень!' };
 
-    // Стоимость увеличивается на 50% с каждым уровнем
     const cost = Math.floor(conf.baseCost * Math.pow(1.5, lvl));
 
     if (agency.gold < cost) return { success: false, reason: 'Недостаточно золота!' };
@@ -505,14 +503,13 @@ window.Models = (function () {
       } else {
         m.missions++;
 
-        // Исправленная КУЗНЯ. Даем статы от левелапа + бонус кузни.
         if (r.type === 'success' || r.type === 'overkill') {
             m.xp = (m.xp || 0) + 1;
             if (m.xp >= m.level * 2) {
                 m.level++;
                 m.xp = 0;
 
-                let points = 1 + (agency.upgrades.forge || 0); // 1, 2, 3 или 4 очка
+                let points = 1 + (agency.upgrades.forge || 0);
                 let givenStats = [];
                 const statLabels = { str: 'СИЛ', agi: 'ЛОВ', int: 'ИНТ', luck: 'УДА' };
 
@@ -537,7 +534,7 @@ window.Models = (function () {
     });
 
     agency.dayStats.missions.push({
-        monsterName: r.participantNames, // Имена всей группы
+        monsterName: r.participantNames,
         questTitle: r.questTitle,
         type: r.type,
         gold: r.gold,
