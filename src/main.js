@@ -6,6 +6,7 @@
   const T = Renderer.THEME;
   const SAVE_KEY = 'feis_last_human_v1';
 
+  // ── Сетка ────────────────────────────────────────────────────────────────
   const TOP_FULL = 130;
   const TOP_MINI = 34;
   const SLOTS = 6;
@@ -74,6 +75,7 @@
   let selectedQuestId = null;
   let selectedMonsterIds = [];
   let selectedMonsterViewId = null;
+  let popupSlot = null; // Хранит тип слота (weapon, armor, amulet), если открыто всплывающее окно
   let toast = { msg: '', t: 0 };
   let tender = null;
   let outcome = null;
@@ -88,7 +90,7 @@
   let introTime = 0;
   let panelAnim = 0;
   let panelTarget = 0;
-  let gameDifficulty = 'normal'; // normal или hard
+  let gameDifficulty = 'normal';
 
   function inRect(p, x, y, w, h) { return p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h; }
   function hoverRect(x, y, w, h) { return inRect(Input.mouse, x, y, w, h); }
@@ -563,6 +565,7 @@
     else { Audio.playSfx('reject'); showToast(res.reason); }
   }
 
+  // ── Досье монстра (Всплывающие окна экипировки) ─────────────────────────
   function drawMonsterView() {
     const a = Game.agency;
     const m = a.monsters.find(function (x) { return x.id === selectedMonsterViewId; });
@@ -612,55 +615,104 @@
 
       noteCard(sx, sy, sw, sh, {
         pin: false,
-        selected: !!item,
-        onClick: item ? function () { unequip(m, slot); } : null
+        selected: popupSlot === slot, // Выделяем слот, если для него открыто окно
+        onClick: () => { popupSlot = popupSlot === slot ? null : slot; Audio.playSfx('click'); }
       });
+
       Renderer.text(SLOT_LABELS[slot], sx + 15, sy + 25, { color: '#7a6244', font: '12px system-ui' });
-      Renderer.ink(item ? item.name : '— пусто —', sx + 15, sy + 50, { font: 'bold 16px Georgia', color: item ? undefined : '#8a7355' });
 
       if (item) {
-        const bonusText = Object.entries(item.bonus || {}).map(e => '+' + e[1] + ' ' + ({ str: 'СИЛ', agi: 'ЛОВ', int: 'ИНТ', luck: 'УДА' }[e[0]] || e[0])).join(' · ');
-        Renderer.text((bonusText ? bonusText + ' · ' : '') + (item.injuryMod < 0 ? Math.round(item.injuryMod * -100) + '% к травме' : item.desc || ''), sx + 15, sy + 70, { color: '#3f6b2a', align: 'left', font: 'bold 11px system-ui' });
-        Renderer.text('снять', sx + sw - 15, sy + 50, { color: '#7a1f1f', align: 'right', font: '12px system-ui' });
+         Renderer.ink(item.name, sx + 15, sy + 45, { font: 'bold 16px Georgia' });
+         const bonusText = Object.entries(item.bonus || {}).map(e => '+' + e[1] + ' ' + ({ str: 'СИЛ', agi: 'ЛОВ', int: 'ИНТ', luck: 'УДА' }[e[0]] || e[0])).join(' · ');
+         let desc = bonusText;
+         if (item.injuryMod < 0) desc += (desc ? ' · ' : '') + Math.round(item.injuryMod * -100) + '% к травме';
+         Renderer.text(desc, sx + 15, sy + 65, { color: '#3f6b2a', font: 'bold 11px system-ui' });
+      } else {
+         Renderer.text('— пусто —', sx + 15, sy + 50, { color: '#8a7355', font: 'bold 16px Georgia' });
+         Renderer.text('Нажмите, чтобы выбрать', sx + 15, sy + 65, { color: '#bfa878', font: '11px system-ui' });
       }
     });
 
-    Renderer.ink('СУМКА', mX, mY + 360, { font: 'bold 18px Georgia' });
-    const bag = {};
-    a.inventory.forEach(function (id) { bag[id] = (bag[id] || 0) + 1; });
-    const bagIds = Object.keys(bag);
+    // Оставляем внизу только расходники
+    Renderer.ink('РАСХОДНИКИ (СУМКА)', mX, mY + 360, { font: 'bold 18px Georgia' });
 
-    if (!bagIds.length) {
-      Renderer.text('Пусто. Экипировка покупается в «Амуниции».', mX, mY + 390, { color: T.inkSoft, font: '14px Georgia' });
+    const bag = {};
+    a.inventory.forEach(id => { bag[id] = (bag[id] || 0) + 1; });
+    const consumables = Object.keys(bag).map(id => Models.getItem(id)).filter(item => item && item.type === 'consumable');
+
+    if (!consumables.length) {
+      Renderer.text('Нет доступных зелий или эликсиров.', mX, mY + 390, { color: T.inkSoft, font: '14px Georgia' });
+    } else {
+      consumables.slice(0, 6).forEach(function (item, i) {
+        const bx = mX + i * 150;
+        const by = mY + 375;
+        const bw = 140, bh = 50;
+
+        noteCard(bx, by, bw, bh, {
+          pin: false,
+          onClick: () => useItem(m, item.id)
+        });
+        Renderer.ink(item.name + (bag[item.id] > 1 ? ' ×' + bag[item.id] : ''), bx + 10, by + 20, { font: 'bold 12px Georgia' });
+        Renderer.text('применить', bx + 10, by + 40, { color: '#8a4a12', font: '11px system-ui' });
+      });
     }
 
-    bagIds.slice(0, 12).forEach(function (id, i) {
-      const item = Models.getItem(id);
-      if (!item) return;
-      const col = i % 6, row = Math.floor(i / 6);
-      const bx = mX + col * 150;
-      const by = mY + 375 + row * 60; // Поднято выше, чтобы клики срабатывали
-      const bw = 140, bh = 50;
-
-      noteCard(bx, by, bw, bh, {
-        pin: false,
-        onClick: function () {
-          if (item.type === 'consumable') useItem(m, id);
-          else equipItem(m, id);
-        }
-      });
-      Renderer.ink(item.name + (bag[id] > 1 ? ' ×' + bag[id] : ''), bx + 10, by + 20, { font: 'bold 12px Georgia' });
-      Renderer.text(item.type === 'consumable' ? 'применить' : 'надеть', bx + 10, by + 40, { color: item.type === 'consumable' ? '#8a4a12' : '#3f6b2a', font: '10px system-ui' });
-    });
-
-    button(cX + cW - 180, cY + cH - 70, 140, 45, 'НАЗАД', function () { setState('agency'); });
+    button(cX + cW - 180, cY + cH - 70, 140, 45, 'НАЗАД', function () { popupSlot = null; setState('agency'); });
 
     if (m.status === 'idle') {
       button(mX, cY + cH - 70, 140, 45, 'УВОЛЬНИТЬ', function () {
         const res = Models.fireMonster(Game.agency, m.id);
-        if (res.success) { Audio.playSfx('reject'); showToast(res.name + ' уволен.'); setState('agency'); }
+        if (res.success) { Audio.playSfx('reject'); showToast(res.name + ' уволен.'); popupSlot = null; setState('agency'); }
         else { Audio.playSfx('reject'); showToast(res.reason); }
       }, { variant: 'danger' });
+    }
+
+    // ── Отрисовка всплывающего окна (Popup) для выбора экипировки ──
+    if (popupSlot) {
+      Renderer.rect(0, 0, W, H, 'rgba(0,0,0,0.6)'); // Затемняем фон
+
+      const popW = 400, popH = 340;
+      const popX = centreX(popW), popY = centreY(popH);
+
+      Renderer.paper(popX, popY, popW, popH, { r: 8, burn: 15 });
+      Renderer.ink('ВЫБЕРИТЕ ' + SLOT_LABELS[popupSlot], popX + popW/2, popY + 45, { align: 'center', font: 'bold 22px Georgia' });
+      Renderer.rect(popX + 40, popY + 65, popW - 80, 1, 'rgba(90,60,25,0.4)');
+
+      const availableItems = a.inventory.map(id => Models.getItem(id)).filter(item => item && item.type === popupSlot);
+      const uniqueIds = [...new Set(availableItems.map(i => i.id))];
+
+      let listY = popY + 90;
+
+      if (uniqueIds.length === 0) {
+         Renderer.text('В сумке нет подходящих предметов.', popX + popW/2, listY + 20, { align: 'center', color: T.inkSoft, font: '14px Georgia' });
+      } else {
+         uniqueIds.slice(0, 4).forEach((id, i) => { // показываем до 4 предметов одного типа
+            const item = Models.getItem(id);
+            const count = availableItems.filter(x => x.id === id).length;
+            const rowY = listY + i * 50;
+
+            const hoveredRow = hoverRect(popX + 20, rowY, popW - 40, 45);
+            if (hoveredRow) Renderer.roundRect(popX + 20, rowY, popW - 40, 45, 4, 'rgba(0,0,0,0.1)');
+
+            Renderer.ink(item.name + (count > 1 ? ' (x' + count + ')' : ''), popX + 40, rowY + 28, { font: 'bold 16px Georgia' });
+
+            addArea(popX + 20, rowY, popW - 40, 45, () => {
+               equipItem(m, item.id);
+               popupSlot = null; // Закрываем попап после экипировки
+            });
+         });
+      }
+
+      // Кнопка Снять предмет, если он уже надет
+      const currentEq = m.equipment[popupSlot];
+      if (currentEq) {
+         button(popX + 40, popY + popH - 65, 140, 45, 'СНЯТЬ ПРЕДМЕТ', () => {
+            unequip(m, popupSlot);
+            popupSlot = null;
+         }, { variant: 'danger' });
+      }
+
+      button(popX + popW - 160, popY + popH - 65, 120, 45, 'ЗАКРЫТЬ', () => { popupSlot = null; });
     }
   }
 
@@ -713,7 +765,7 @@
     Renderer.text('Чем закончится — узнаем из докладной.', W/2, barY + 40, { color: '#7a6244', align: 'center', font: '14px Georgia' });
   }
 
-  // ── Экран Отчёта (Исправлены смещения) ───────────────────────────────────
+  // ── Экран Отчёта (Исправлены отступы) ───────────────────────────────────
   function drawReport() {
     const a = Game.agency;
     const r = a.lastResult;
@@ -1112,13 +1164,12 @@
     setState('agency');
   }
 
-  // ── Главное меню с выбором сложности ─────────────────────────────────────
   function drawMenu() {
     Renderer.drawImage('bg_main', 0, 0, W, H);
     Renderer.rect(0, 0, W, H, 'rgba(6,4,2,0.74)');
 
     const cW = 800;
-    const cH = 540; // Чуть увеличили, чтобы влезла новая кнопка
+    const cH = 540;
     const cX = centreX(cW);
     const cY = centreY(cH);
 
@@ -1356,7 +1407,6 @@
       Game.agency = data.agency;
       if (!Game.agency.inventory) Game.agency.inventory = [];
 
-      // Инициализируем сложность, если её не было в сохранении
       if (!Game.agency.difficulty) Game.agency.difficulty = 'normal';
       gameDifficulty = Game.agency.difficulty;
 
@@ -1407,7 +1457,10 @@
       else if (Game.state === 'pause') setState('agency');
       else if (Game.state === 'help') closeHelp();
       else if (Game.state === 'agency') setState('pause');
-      else if (Game.state === 'monster') setState('agency');
+      else if (Game.state === 'monster') {
+          if (popupSlot) popupSlot = null; // Закрыть попап, если открыт
+          else setState('agency');
+      }
     }
     if (pressed('Enter') || pressed('Space')) {
       if (Game.state === 'menu') { Game.agency = Models.createAgency(gameDifficulty); setState('intro'); }
@@ -1463,17 +1516,6 @@
     Game.update = update;
     Game.render = render;
     Game.setState = setState;
-
-    const debugBtn = document.getElementById('debugBtn');
-    const debugPanel = document.getElementById('debugPanel');
-    if (debugBtn && debugPanel) {
-      debugBtn.addEventListener('click', function () {
-        debugPanel.textContent = JSON.stringify({
-          state: Game.state, agency: Game.agency, tender: tender, outcome: outcome
-        }, null, 2);
-        debugPanel.classList.toggle('open');
-      });
-    }
 
     function frame(now) {
       Game.loop(now);
