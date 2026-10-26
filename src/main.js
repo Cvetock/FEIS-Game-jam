@@ -6,7 +6,6 @@
   const T = Renderer.THEME;
   const SAVE_KEY = 'feis_last_human_v1';
 
-  // ── Сетка ────────────────────────────────────────────────────────────────
   const TOP_FULL = 130;
   const TOP_MINI = 34;
   const SLOTS = 6;
@@ -89,6 +88,7 @@
   let introTime = 0;
   let panelAnim = 0;
   let panelTarget = 0;
+  let gameDifficulty = 'normal'; // normal или hard
 
   function inRect(p, x, y, w, h) { return p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h; }
   function hoverRect(x, y, w, h) { return inRect(Input.mouse, x, y, w, h); }
@@ -166,7 +166,6 @@
     else if (opts.onClick && disabled) addArea(x, y, w, h, function () { showToast(opts.reason || 'Недоступно'); });
   }
 
-  // ── Экран агентства (Главный интерфейс) ──────────────────────────────────
   function drawAgency() {
     const a = Game.agency;
     Renderer.drawImage('bg_main', 0, 0, W, H);
@@ -177,7 +176,6 @@
     drawTopPanel(a);
   }
 
-  // ── Верхняя панель (Отряд) ───────────────────────────────────────────────
   function drawTopPanel(a) {
     const topH = panelHeight();
     const slotW = pw(9.0);
@@ -203,18 +201,15 @@
       } else {
         const yHoverOff = hovered ? -5 : 0;
 
-        // 1. Сначала рисуем рамку
         Renderer.drawImage('roster_slot', x, yOffset + yHoverOff, slotW, slotH);
 
-        // 2. Затем портрет ПОВЕРХ рамки
         if (m) {
            if (m.status === 'injured') {
              Renderer.roundRect(x + 15, yOffset + 25 + yHoverOff, slotW - 30, slotW - 30, 4, 'rgba(239, 68, 68, 0.4)');
            }
-
-           const portraitX = x + 15;
-           const portraitY = yOffset + 25 + yHoverOff;
-           const portraitSize = slotW - 30;
+           const portraitX = x + 20;
+           const portraitY = yOffset + 45 + yHoverOff;
+           const portraitSize = slotW - 45;
 
            Renderer.drawImage('mon_' + m.speciesKey, portraitX, portraitY, portraitSize, portraitSize);
 
@@ -234,7 +229,6 @@
     });
   }
 
-  // ── Нижняя панель действий ───────────────────────────────────────────────
   function drawBottomBar(a) {
     const barY = H - 110;
     Renderer.gradientRect(0, barY, W, 110, 'rgba(15, 10, 6, 0)', 'rgba(15, 10, 6, 0.95)');
@@ -271,7 +265,6 @@
     });
   }
 
-  // ── Центральный пергамент (Роутер вкладок) ───────────────────────────────
   function drawCentral(a) {
     const cW = 1200;
     const cH = 520;
@@ -290,7 +283,6 @@
     else if (currentTab === 'items') drawItemsTab(a, r);
   }
 
-  // ── Вкладка Найма ────────────────────────────────────────────────────────
   function drawNewHireTab(a, r) {
     Renderer.ink('Таверна (Найм монстров)', r.x, r.y, { font: 'bold 26px Georgia' });
     Renderer.text('Пополняй ряды гильдии сильнейшими.\nКаждый монстр - это новые возможности и добыча.',
@@ -359,7 +351,6 @@
     }
   }
 
-  // ── Вкладка «Заказы / Отряд» ─────────────────────────────────────────────
   function drawQuestsTab(a, r) {
     Renderer.ink('Карта заданий', r.x, r.y, { font: 'bold 26px Georgia' });
     Renderer.text('перехват ' + Math.round(Models.interceptChance(a) * 100) + '%', r.x + r.w, r.y, { color: T.inkSoft, align: 'right', font: 'bold 14px Georgia' });
@@ -411,7 +402,6 @@
       Renderer.drawMonsterIcon('mon_' + m.speciesKey, x + 5, y + 15, 45);
       Renderer.ink(m.name, x + 55, y + 30, { font: 'bold 13px Georgia' });
 
-      // Считаем статы с учетом надетых предметов
       const totalStr = m.stats.str + Models.itemBonus(m, 'str');
       const totalInt = m.stats.int + Models.itemBonus(m, 'int');
       Renderer.text(disabled ? (m.status === 'injured' ? 'ранен' : 'отдыхает') : ('СИЛ ' + totalStr + ' · ИНТ ' + totalInt), x + 55, y + 50, { color: disabled ? '#7a1f1f' : T.inkSoft, font: '10px system-ui' });
@@ -471,7 +461,6 @@
     setState('mission');
   }
 
-  // ── Вкладка «Улучшения» ────────────────────────────────────────────────
   function drawShopTab(a, r) {
     Renderer.ink('Магазин улучшений', r.x, r.y, { font: 'bold 26px Georgia' });
     Renderer.text('В казне: ' + a.gold + ' зол.', r.x + r.w, r.y, { color: '#8a6d1a', align: 'right', font: 'bold 16px Georgia' });
@@ -536,7 +525,6 @@
     else { Audio.playSfx('reject'); showToast(res.reason); }
   }
 
-  // ── Вкладка «Амуниция / Рынок» ───────────────────────────────────────────
   function inventoryCount(a, id) { return a.inventory.filter(function (x) { return x === id; }).length; }
 
   function drawItemsTab(a, r) {
@@ -575,7 +563,6 @@
     else { Audio.playSfx('reject'); showToast(res.reason); }
   }
 
-  // ── Досье монстра (Всплывающее окно) ──────────────────────────────────
   function drawMonsterView() {
     const a = Game.agency;
     const m = a.monsters.find(function (x) { return x.id === selectedMonsterViewId; });
@@ -594,7 +581,7 @@
     }
 
     const mX = cX + 80;
-    const mY = cY + 60;
+    const mY = cY + 50;
 
     Renderer.drawMonsterIcon('mon_' + m.speciesKey, mX, mY, 140);
     Renderer.ink(m.name, mX + 170, mY + 30, { font: 'bold 36px Georgia' });
@@ -652,7 +639,7 @@
       if (!item) return;
       const col = i % 6, row = Math.floor(i / 6);
       const bx = mX + col * 150;
-      const by = mY + 380 + row * 60;
+      const by = mY + 375 + row * 60; // Поднято выше, чтобы клики срабатывали
       const bw = 140, bh = 50;
 
       noteCard(bx, by, bw, bh, {
@@ -666,10 +653,10 @@
       Renderer.text(item.type === 'consumable' ? 'применить' : 'надеть', bx + 10, by + 40, { color: item.type === 'consumable' ? '#8a4a12' : '#3f6b2a', font: '10px system-ui' });
     });
 
-    button(cX + cW - 180, cY + cH - 80, 140, 45, 'НАЗАД', function () { setState('agency'); });
+    button(cX + cW - 180, cY + cH - 70, 140, 45, 'НАЗАД', function () { setState('agency'); });
 
     if (m.status === 'idle') {
-      button(mX, cY + cH - 80, 140, 45, 'УВОЛЬНИТЬ', function () {
+      button(mX, cY + cH - 70, 140, 45, 'УВОЛЬНИТЬ', function () {
         const res = Models.fireMonster(Game.agency, m.id);
         if (res.success) { Audio.playSfx('reject'); showToast(res.name + ' уволен.'); setState('agency'); }
         else { Audio.playSfx('reject'); showToast(res.reason); }
@@ -726,7 +713,7 @@
     Renderer.text('Чем закончится — узнаем из докладной.', W/2, barY + 40, { color: '#7a6244', align: 'center', font: '14px Georgia' });
   }
 
-  // ── Экран Отчёта ─────────────────────────────────────────────────────────
+  // ── Экран Отчёта (Исправлены смещения) ───────────────────────────────────
   function drawReport() {
     const a = Game.agency;
     const r = a.lastResult;
@@ -744,38 +731,37 @@
       Renderer.paper(cX, cY, cW, cH, { r: 8, burn: 20 });
     }
 
-    Renderer.note(cX + 60, cY + 50, 80, 80, { pin: false });
-    Renderer.drawMonsterIcon('mon_' + r.speciesKey, cX + 65, cY + 55, 70);
+    Renderer.note(cX + 80, cY + 50, 70, 70, { pin: false });
+    Renderer.drawMonsterIcon('mon_' + r.speciesKey, cX + 85, cY + 55, 60);
 
-    Renderer.ink('ДОКЛАДНАЯ', cX + 160, cY + 80, { font: 'bold 22px Georgia' });
+    Renderer.ink('ДОКЛАДНАЯ', cX + 170, cY + 75, { font: 'bold 22px Georgia' });
     const multi = r.participants && r.participants.length > 1;
     Renderer.text(multi ? r.monsterName + ' и ещё ' + (r.participants.length - 1) : ('от ' + r.monsterName + ' · ' + r.speciesLabel),
-      cX + 160, cY + 105, { color: T.inkSoft, font: '16px Georgia' });
-    Renderer.text('Задание: ' + r.questTitle, cX + 160, cY + 130, { color: '#6b4a18', font: 'italic 15px Georgia' });
-    Renderer.text('День ' + a.day, cX + cW - 60, cY + 80, { color: '#7a6244', align: 'right', font: '14px Georgia' });
+      cX + 170, cY + 100, { color: T.inkSoft, font: '16px Georgia' });
+    Renderer.text('Задание: ' + r.questTitle, cX + 170, cY + 120, { color: '#6b4a18', font: 'italic 15px Georgia' });
+    Renderer.text('День ' + a.day, cX + cW - 80, cY + 75, { color: '#7a6244', align: 'right', font: '14px Georgia' });
 
-    // Разделитель
-    Renderer.rect(cX + 60, cY + 150, cW - 120, 1, 'rgba(90,60,25,0.4)');
+    Renderer.rect(cX + 80, cY + 140, cW - 160, 1, 'rgba(90,60,25,0.4)');
 
-    const font = 'italic 28px Georgia';
+    const font = 'italic 26px Georgia';
     const full = '«' + r.reportText + '»';
-    const lines = Renderer.wrapText(full, cW - 140, font);
+    const lines = Renderer.wrapText(full, cW - 240, font);
     const visible = Math.min(full.length, Math.floor(reportTime * 45));
     let remaining = visible;
 
     lines.forEach(function (line, i) {
       const take = Math.max(0, Math.min(line.length, remaining));
       remaining -= take;
-      Renderer.ink(line.slice(0, take), cX + 70, cY + 210 + i * 40, { font: font });
+      Renderer.ink(line.slice(0, take), cX + cW / 2, cY + 220 + i * 35, { font: font, align: 'center' });
     });
 
     if (r.participants && r.participants.length > 1) {
-      Renderer.text('Участники группы:', cX + 60, cY + 380, { color: '#d8b96a', font: 'bold 14px Georgia' });
+      Renderer.text('Участники группы:', cX + cW / 2, cY + 360, { color: '#d8b96a', font: 'bold 14px Georgia', align: 'center' });
       const names = r.participants.map(function (pid) {
         var m = Game.agency.monsters.find(function (x) { return x.id === pid; });
         return m ? m.name : '—';
       }).join(' · ');
-      Renderer.text(names, cX + 60, cY + 400, { color: T.inkSoft, font: '13px Georgia' });
+      Renderer.text(names, cX + cW / 2, cY + 380, { color: T.inkSoft, font: '13px Georgia', align: 'center' });
     }
 
     if (r.type === 'overkill') {
@@ -783,30 +769,29 @@
       for (let i = 0; i < 24; i++) {
         const ang = (i / 24) * Math.PI * 2;
         const dist = 30 + p * 120 + (i % 5) * 10;
-        Renderer.rect(cX + cW/2 + Math.cos(ang) * dist, cY + 300 + Math.sin(ang) * dist * 0.55, 4, 4,
+        Renderer.rect(cX + cW/2 + Math.cos(ang) * dist, cY + 290 + Math.sin(ang) * dist * 0.55, 4, 4,
           i % 3 === 0 ? '#8a4a12' : '#8a6d1a');
       }
-      Renderer.text('МОНСТР ПЕРЕСТАРАЛСЯ', cX + 60, cY + 430, { color: '#8a4a12', font: 'bold 15px Georgia' });
+      Renderer.text('МОНСТР ПЕРЕСТАРАЛСЯ', cX + cW / 2, cY + 410, { color: '#8a4a12', font: 'bold 15px Georgia', align: 'center' });
     }
 
-    // Печать и доверие сдвинуты так, чтобы не вылезать за нижний край
-    const sealX = cX + 100, sealY = cY + 480;
+    const sealX = cX + 110, sealY = cY + 415;
     Renderer.ctx.save();
     Renderer.ctx.globalAlpha = 0.8;
-    Renderer.roundRect(sealX - 30, sealY - 30, 60, 60, 30, '#6e1a1a');
-    Renderer.roundRectStroke(sealX - 30, sealY - 30, 60, 60, 30, '#3f0f0f', 3);
-    Renderer.text('АГ', sealX, sealY + 8, { color: '#e8b4a0', align: 'center', font: 'bold 24px Georgia' });
+    Renderer.roundRect(sealX - 25, sealY - 25, 50, 50, 25, '#6e1a1a');
+    Renderer.roundRectStroke(sealX - 25, sealY - 25, 50, 50, 25, '#3f0f0f', 3);
+    Renderer.text('АГ', sealX, sealY + 7, { color: '#e8b4a0', align: 'center', font: 'bold 20px Georgia' });
     Renderer.ctx.restore();
-    Renderer.text('Печать агентства', cX + 150, sealY + 6, { color: '#6b4a18', font: 'italic 14px Georgia' });
+    Renderer.text('Печать агентства', sealX + 40, sealY + 5, { color: '#6b4a18', font: 'italic 14px Georgia' });
 
-    Renderer.rect(cX + 60, cY + 530, cW - 120, 1, 'rgba(90,60,25,0.4)');
+    Renderer.rect(cX + 80, cY + 460, cW - 160, 1, 'rgba(90,60,25,0.4)');
 
     const trust = Math.round(r.honesty * 100);
     const trustColor = trust >= 80 ? '#3f6b2a' : (trust >= 40 ? '#8a6d1a' : '#7a1f1f');
-    Renderer.text('Интеллект ' + r.int + ' — честность отчёта ' + trust + '%', cX + 60, cY + 560, { color: trustColor, font: 'bold 15px Georgia' });
+    Renderer.text('Интеллект ' + r.int + ' — честность отчёта ' + trust + '%', cX + 80, cY + 490, { color: trustColor, font: 'bold 14px Georgia' });
 
     if (reportTime > 0.9) {
-      button(cX + cW - 240, cY + 525, 180, 50, 'ПРИНЯТЬ ОТЧЁТ', acceptReport);
+      button(cX + cW - 260, cY + 470, 180, 50, 'ПРИНЯТЬ ОТЧЁТ', acceptReport);
     }
   }
 
@@ -825,6 +810,7 @@
     if (a.quests.length === 0) showToast('Заказы закончились — завершайте день');
   }
 
+  // ── Экран Конца Дня (Увеличены отступы, чтобы не вылезало) ───────────────
   function drawEndDay() {
     const a = Game.agency;
 
@@ -836,12 +822,15 @@
     const cX = centreX(cW);
     const cY = centreY(cH);
 
+    const padX = 140;
+    const innerW = cW - padX * 2;
+
     if (!Renderer.drawImage('bg_paper', cX, cY, cW, cH)) {
       Renderer.paper(cX, cY, cW, cH, { r: 8, burn: 18 });
     }
 
-    Renderer.ink('КОНЕЦ ДНЯ ' + a.day, W / 2, cY + 60, { align: 'center', font: 'bold 32px Georgia' });
-    Renderer.text('Золото начислено только сейчас — докладные могли врать.', W / 2, cY + 90, { color: T.inkSoft, align: 'center', font: '15px Georgia' });
+    Renderer.ink('КОНЕЦ ДНЯ ' + a.day, W / 2, cY + 90, { align: 'center', font: 'bold 32px Georgia' });
+    Renderer.text('Золото начислено только сейчас — докладные могли врать.', W / 2, cY + 120, { color: T.inkSoft, align: 'center', font: '15px Georgia' });
 
     const cells = [
       ['ЗАДАНИЙ', a.dayStats.questsDone],
@@ -849,35 +838,37 @@
       ['ПЕРЕХВАЧЕНО', a.dayStats.intercepted],
       ['ПОТЕРЯНО', a.dayStats.losses]
     ];
+
+    const cellW = innerW / 4;
     cells.forEach(function (c, i) {
-      const cellX = cX + 80 + i * 220;
-      Renderer.text(c[0], cellX, cY + 140, { color: T.inkSoft, font: '11px system-ui' });
-      Renderer.ink(String(c[1]), cellX, cY + 180, { font: 'bold 32px Georgia' });
+      const cellX = cX + padX + i * cellW;
+      Renderer.text(c[0], cellX, cY + 170, { color: T.inkSoft, font: '11px system-ui' });
+      Renderer.ink(String(c[1]), cellX, cY + 210, { font: 'bold 32px Georgia' });
     });
 
-    Renderer.rect(cX + 40, cY + 220, cW - 80, 1, 'rgba(90,60,25,0.35)');
-    Renderer.ink('РЕЗУЛЬТАТЫ МИССИЙ', cX + 40, cY + 260, { font: 'bold 15px Georgia' });
+    Renderer.rect(cX + padX, cY + 250, innerW, 1, 'rgba(90,60,25,0.35)');
+    Renderer.ink('РЕЗУЛЬТАТЫ МИССИЙ', cX + padX, cY + 290, { font: 'bold 15px Georgia' });
 
     if (!a.dayStats.missions.length) {
-      Renderer.text('Сегодня никто не выходил на задания.', cX + 40, cY + 300, { color: '#7a6244', font: '15px Georgia' });
+      Renderer.text('Сегодня никто не выходил на задания.', cX + padX, cY + 330, { color: '#7a6244', font: '15px Georgia' });
     }
 
     a.dayStats.missions.slice(-10).forEach(function (m, i) {
-      const my = cY + 290 + i * 25;
+      const my = cY + 320 + i * 25;
       const info = MISSION_LABELS[m.type] || { text: m.type, color: T.ink };
-      Renderer.text('• ' + m.monsterName + ' — ' + m.questTitle, cX + 40, my, { color: T.ink, font: '14px Georgia' });
-      Renderer.text(info.text + (m.gold ? ' (+' + m.gold + ')' : ''), cX + cW - 60, my, { color: info.color, align: 'right', font: 'bold 14px Georgia' });
+      Renderer.text('• ' + m.monsterName + ' — ' + m.questTitle, cX + padX, my, { color: T.ink, font: '14px Georgia' });
+      Renderer.text(info.text + (m.gold ? ' (+' + m.gold + ')' : ''), cX + padX + innerW, my, { color: info.color, align: 'right', font: 'bold 14px Georgia' });
     });
 
     const stage = Models.threatStage(a.threat);
     Renderer.text('Угроза: ' + Models.threatLabel(a.threat) + ' (' + Math.round(a.threat * 100) + '%)' +
       ' · перехват ' + Math.round(Models.interceptChance(a) * 100) + '%',
-      cX + 40, cY + cH - 110, { color: STAGE_INK[stage], font: 'bold 16px Georgia' });
+      cX + padX, cY + cH - 130, { color: STAGE_INK[stage], font: 'bold 16px Georgia' });
     Renderer.text(a.upgrades.intel > 0 ? 'Отдел разведки работает.' : 'Без отдела разведки конкуренты смелее.',
-      cX + 40, cY + cH - 80, { color: T.inkSoft, font: '14px Georgia' });
+      cX + padX, cY + cH - 100, { color: T.inkSoft, font: '14px Georgia' });
 
     const lastDay = a.day >= a.maxDays;
-    button(cX + cW/2 - 150, cY + cH - 90, 300, 60, lastDay ? 'ФИНАЛЬНЫЙ ТЕНДЕР' : 'СЛЕДУЮЩИЙ ДЕНЬ', handleEndDayButton, { font: 'bold 16px Georgia' });
+    button(cX + cW/2 - 150, cY + cH - 75, 300, 50, lastDay ? 'ФИНАЛЬНЫЙ ТЕНДЕР' : 'СЛЕДУЮЩИЙ ДЕНЬ', handleEndDayButton, { font: 'bold 16px Georgia' });
   }
 
   function handleEndDayButton() {
@@ -1109,24 +1100,25 @@
       Renderer.ink(String(r[1]), cX + cW - 150, ry, { align: 'right', font: 'bold 16px Georgia' });
     });
 
-    button(cX + 120, cY + cH - 90, 280, 65, 'НОВАЯ ИГРА', startNewGame);
+    button(cX + 120, cY + cH - 90, 280, 65, 'НОВАЯ ИГРА', function() { gameDifficulty = 'normal'; startNewGame(); });
     button(cX + cW - 400, cY + cH - 90, 280, 65, 'В МЕНЮ', function () { outcome = null; setState('menu'); }, { variant: 'ghost' });
   }
 
   function startNewGame() {
-    Game.agency = Models.createAgency();
+    Game.agency = Models.createAgency(gameDifficulty);
     tender = null;
     outcome = null;
     currentTab = 'hire';
     setState('agency');
   }
 
+  // ── Главное меню с выбором сложности ─────────────────────────────────────
   function drawMenu() {
     Renderer.drawImage('bg_main', 0, 0, W, H);
     Renderer.rect(0, 0, W, H, 'rgba(6,4,2,0.74)');
 
     const cW = 800;
-    const cH = 500;
+    const cH = 540; // Чуть увеличили, чтобы влезла новая кнопка
     const cX = centreX(cW);
     const cY = centreY(cH);
 
@@ -1134,30 +1126,34 @@
       Renderer.paper(cX, cY, cW, cH, { r: 8, burn: 22 });
     }
 
-    Renderer.ink('ПОСЛЕДНИЙ ЧЕЛОВЕК', W/2, cY + 100, { align: 'center', font: 'bold 48px Georgia' });
-    Renderer.text('агентство по трудоустройству монстров', W/2, cY + 140, { color: T.inkSoft, align: 'center', font: 'italic 16px Georgia' });
-    Renderer.rect(cX + 100, cY + 160, cW - 200, 1, 'rgba(90,60,25,0.4)');
+    Renderer.ink('ПОСЛЕДНИЙ ЧЕЛОВЕК', W/2, cY + 90, { align: 'center', font: 'bold 48px Georgia' });
+    Renderer.text('агентство по трудоустройству монстров', W/2, cY + 130, { color: T.inkSoft, align: 'center', font: 'italic 16px Georgia' });
+    Renderer.rect(cX + 100, cY + 150, cW - 200, 1, 'rgba(90,60,25,0.4)');
 
     const save = readSave();
     const btnW = 320;
-    const btnH = 65;
+    const btnH = 60;
 
-    button(centreX(btnW), cY + 200, btnW, btnH, 'НОВАЯ ИГРА', function () {
-      Game.agency = Models.createAgency();
+    button(centreX(btnW), cY + 180, btnW, btnH, 'НОВАЯ ИГРА', function () {
+      Game.agency = Models.createAgency(gameDifficulty);
       setState('intro');
     }, { font: 'bold 16px Georgia' });
 
-    button(centreX(btnW), cY + 280, btnW, btnH, save ? ('ПРОДОЛЖИТЬ · день ' + save.day) : 'ПРОДОЛЖИТЬ', function () {
+    button(centreX(btnW), cY + 250, btnW, btnH, 'СЛОЖНОСТЬ: ' + (gameDifficulty === 'hard' ? 'ВЫСОКАЯ' : 'ОБЫЧНАЯ'), function () {
+      gameDifficulty = gameDifficulty === 'normal' ? 'hard' : 'normal';
+    }, { font: 'bold 14px Georgia', variant: gameDifficulty === 'hard' ? 'danger' : 'primary' });
+
+    button(centreX(btnW), cY + 320, btnW, btnH, save ? ('ПРОДОЛЖИТЬ · день ' + save.day) : 'ПРОДОЛЖИТЬ', function () {
       if (loadGame()) { currentTab = 'hire'; setState('agency'); }
       else showToast('Сохранение не найдено');
     }, {
       variant: 'ghost', font: 'bold 15px Georgia', disabled: !saveAvailable, reason: 'Пока нет сохранения'
     });
 
-    button(centreX(btnW), cY + 360, btnW, btnH, 'КАК ИГРАТЬ', function () { helpFrom = 'menu'; setState('help'); },
+    button(centreX(btnW), cY + 390, btnW, btnH, 'КАК ИГРАТЬ', function () { helpFrom = 'menu'; setState('help'); },
       { variant: 'ghost', font: 'bold 15px Georgia' });
 
-    Renderer.text('Мышь / тап. Esc — пауза, Enter — подтвердить.', W/2, cY + cH - 40, { color: '#7a6244', align: 'center', font: '12px Georgia' });
+    Renderer.text('Мышь / тап. Esc — пауза, Enter — подтвердить.', W/2, cY + cH - 30, { color: '#7a6244', align: 'center', font: '12px Georgia' });
   }
 
   function readSave() {
@@ -1359,6 +1355,11 @@
       if (!data || !data.agency || !data.agency.monsters) return false;
       Game.agency = data.agency;
       if (!Game.agency.inventory) Game.agency.inventory = [];
+
+      // Инициализируем сложность, если её не было в сохранении
+      if (!Game.agency.difficulty) Game.agency.difficulty = 'normal';
+      gameDifficulty = Game.agency.difficulty;
+
       return true;
     } catch (e) { return false; }
   }
@@ -1409,7 +1410,7 @@
       else if (Game.state === 'monster') setState('agency');
     }
     if (pressed('Enter') || pressed('Space')) {
-      if (Game.state === 'menu') { Game.agency = Models.createAgency(); setState('intro'); }
+      if (Game.state === 'menu') { Game.agency = Models.createAgency(gameDifficulty); setState('intro'); }
       else if (Game.state === 'intro') setState('agency');
       else if (Game.state === 'report' && reportTime > 0.9) acceptReport();
       else if (Game.state === 'endday') handleEndDayButton();
