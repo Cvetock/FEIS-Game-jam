@@ -1,4 +1,3 @@
-// Модель данных и вся игровая математика.
 window.Models = (function () {
   'use strict';
 
@@ -70,7 +69,7 @@ window.Models = (function () {
   }
 
   function uid() { return Utils.uid(); }
-  function rosterCap(agency) { return 3 + agency.upgrades.stables; }
+  function rosterCap(agency) { return 4 + agency.upgrades.stables; } // ИСПРАВЛЕНО: возвращаем 4 базу (4+2 = 6 макс)
   function riskLabel(difficulty) {
     if (difficulty <= 3) return 'Низкий';
     if (difficulty === 4) return 'Средний';
