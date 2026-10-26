@@ -825,7 +825,7 @@
       });
     }
 
-    button(cX + cW - 190, cY + cH - 85, 140, 45, 'УВОЛЬНИТЬ', function () {
+    button(cX + cW - 190, cY + cH - 85, 140, 45, 'УВОЛИТЬ', function () {
       const res = Models.fireMonster(Game.agency, m.id);
       if (res.success) { Audio.playSfx('reject'); showToast(res.name + ' уволен.'); popupSlot = null; setState('agency'); }
       else { Audio.playSfx('reject'); showToast(res.reason); }
