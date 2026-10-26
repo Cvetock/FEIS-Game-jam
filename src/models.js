@@ -1,3 +1,4 @@
+// Модель данных и вся игровая математика.
 window.Models = (function () {
   'use strict';
 
@@ -80,12 +81,12 @@ window.Models = (function () {
   function createMonster(forceSpecies, trainingLevel, difficulty = 'normal') {
     const key = forceSpecies || Utils.pick(Object.keys(SPECIES));
     const sp = SPECIES[key];
-    
+
     let minBase = 4, maxBase = 14;
     if (difficulty === 'hard') { minBase = 2; maxBase = 10; }
     if (difficulty === 'easy') { minBase = 6; maxBase = 16; }
     const base = Utils.randInt(minBase, maxBase);
-    
+
     const stats = {
       str:  Utils.clamp(base + sp.bias.str  + Utils.randInt(-1, 1), 1, 20),
       agi:  Utils.clamp(base + sp.bias.agi  + Utils.randInt(-1, 1), 1, 20),
@@ -98,7 +99,7 @@ window.Models = (function () {
     return {
       id: uid(), name: Utils.pick(Content.MONSTER_NAMES[key]), speciesKey: key, speciesLabel: sp.label, color: sp.color,
       stats: stats, traits: [Utils.pick(TRAITS)], preference: Utils.pick(PREFERENCES), status: 'idle', overkillCount: 0,
-      missions: 0, equipment: { weapon: null, armor: null, amulet: null }, temp: null, 
+      missions: 0, equipment: { weapon: null, armor: null, amulet: null }, temp: null,
       level: 1, xp: 0, injuryDays: 0
     };
   }
@@ -155,7 +156,7 @@ window.Models = (function () {
 
     const agency = {
       day: 1, maxDays: 14, difficulty: difficulty,
-      gold: startGold, rep: 0, level: 1, threat: startThreat, 
+      gold: startGold, rep: 0, level: 1, threat: startThreat,
       monsters: [], candidates: [], quests: [], log: [], upgrades: upgrades,
       inventory: ['club'], interviewsLeft: 3, lastResult: null, dayStats: freshDayStats(),
       stats: { questsDone: 0, goldEarned: 0, losses: 0, overkills: 0, interceptedTotal: 0, missions: [] }
@@ -168,13 +169,31 @@ window.Models = (function () {
     return agency;
   }
 
-  // Больше предпочтения не блокируют найм, они блокируют отправку на задания (см. getRefusalReason)
+  // Проверка требований монстра при попытке найма (если в команде нет нужного вида)
+  function checkHirePreference(pref, agency) {
+    const roster = agency.monsters.map(m => m.speciesKey);
+    const has = (...types) => types.some(t => roster.includes(t));
+    switch (pref) {
+      case 'работать_только_с_нежитью': if (!has('skeleton', 'vampire')) return 'Отказ: Требует нежить в штате!'; break;
+      case 'не_работать_с_нежитью': if (has('skeleton', 'vampire')) return 'Отказ: Не работает с нежитью!'; break;
+      case 'работать_только_с_гоблинами': if (!has('goblin')) return 'Отказ: Хочет работать только с гоблинами!'; break;
+      case 'требует_вампира_в_команде': if (!has('vampire')) return 'Отказ: Требует вампира в штате!'; break;
+      case 'работает_только_один': if (agency.monsters.length > 0) return 'Отказ: Работает только в одиночку!'; break;
+      case 'требует_импа': if (!has('imp')) return 'Отказ: Требует Импу в штате!'; break;
+      case 'не_работает_с_слизями': if (has('slime')) return 'Отказ: Не переносит слизь в штате!'; break;
+    }
+    return null;
+  }
+
   function tryHire(candidate, agency) {
     if (agency.interviewsLeft <= 0) return { success: false, consumed: false, reason: 'Все собеседования на сегодня использованы' };
     if (agency.monsters.length >= rosterCap(agency)) return { success: false, consumed: false, reason: 'Нет свободных мест в стойлах' };
     if (agency.gold < candidate.cost) return { success: false, consumed: false, reason: 'Недостаточно золота на найм!' };
-    
+
     agency.interviewsLeft--;
+    const refusal = checkHirePreference(candidate.preference, agency);
+    if (refusal) return { success: false, consumed: true, reason: refusal };
+
     agency.gold -= candidate.cost;
     return { success: true, consumed: true, reason: '', cost: candidate.cost };
   }
@@ -182,19 +201,11 @@ window.Models = (function () {
   function getRefusalReason(monster, quest, agency) {
     const roster = agency.monsters.map(m => m.speciesKey);
     const has = (...types) => types.some(t => roster.includes(t));
-    
     switch (monster.preference) {
-      case 'работать_только_с_нежитью': if (!has('skeleton', 'vampire')) return 'Требует нежить в штате!'; break;
-      case 'не_работать_с_нежитью': if (has('skeleton', 'vampire')) return 'Отказывается работать с нежитью!'; break;
-      case 'работать_только_с_гоблинами': if (!has('goblin')) return 'Хочет работать только с гоблинами!'; break;
       case 'не_лезть_в_пещеры': if (quest && UNDERGROUND.includes(quest.type)) return 'Отказывается лезть в подземелья!'; break;
       case 'только_подземелья': if (quest && !UNDERGROUND.includes(quest.type)) return 'Согласен только на подземелья!'; break;
-      case 'требует_вампира_в_команде': if (!has('vampire')) return 'Требует вампира в штате!'; break;
       case 'любит_риск': if (quest && quest.difficulty < 6) return 'Слишком скучное задание (нужна сложность 6+)!'; break;
       case 'только_лёгкие_задания': if (quest && quest.difficulty > 4) return 'Слишком опасно (нужна сложность 1-4)!'; break;
-      case 'работает_только_один': if (agency.monsters.length > 1) return 'Работает только когда в штате один!'; break;
-      case 'требует_импа': if (!has('imp')) return 'Требует Импу в штате!'; break;
-      case 'не_работает_с_слизями': if (has('slime')) return 'Не переносит слизь в штате!'; break;
       case 'любит_золото': if (quest && quest.reward < 50) return 'Слишком дешево (нужно от 50 зол.)!'; break;
       case 'трусливый': if (agency.threat > 0.3) return 'Слишком страшно (угроза выше 30%)!'; break;
     }
@@ -207,12 +218,12 @@ window.Models = (function () {
     const m = agency.monsters[idx];
     if (m.status === 'busy') return { success: false, reason: 'Монстр занят на задании' };
     if (m.injuryDays > 0) return { success: false, reason: 'Нельзя увольнять раненых! Вылечите его.' };
-    
+
     // Возвращаем экипировку в сумку
     ['weapon', 'armor', 'amulet'].forEach(slot => {
         if (m.equipment[slot]) agency.inventory.push(m.equipment[slot]);
     });
-    
+
     agency.monsters.splice(idx, 1);
     return { success: true, name: m.name };
   }
@@ -233,9 +244,10 @@ window.Models = (function () {
 
   function hireUndead(agency) {
     if (agency.monsters.length >= rosterCap(agency)) return { success: false, reason: 'Стойла переполнены!' };
-    if (agency.gold < 150) return { success: false, reason: 'Нужно 150 золота!' };
+    const cost = 150;
+    if (agency.gold < cost) return { success: false, reason: 'Нужно 150 золота!' };
 
-    agency.gold -= 150;
+    agency.gold -= cost;
     const species = Utils.chance(0.7) ? 'skeleton' : 'vampire';
     const monster = createMonster(species, agency.upgrades.training, agency.difficulty);
     if (agency.upgrades.crypta > 0) { monster.level = agency.upgrades.crypta + 1; monster.stats.str++; monster.stats.int++; }
@@ -274,7 +286,7 @@ window.Models = (function () {
 
     const idx = agency.inventory.indexOf(itemId);
     if (idx === -1) return { success: false, reason: 'Предмета нет в сумке' };
-    
+
     const slot = item.type;
     if (monster.equipment[slot]) agency.inventory.push(monster.equipment[slot]);
     agency.inventory.splice(idx, 1);
@@ -361,9 +373,9 @@ window.Models = (function () {
     let totalStat = 0;
     monsters.forEach(m => { totalStat += effectiveStat(m, quest, agency); });
     let chance = 0.4 + (totalStat - quest.difficulty * 1.5) * 0.05;
-    
-    if (agency.difficulty === 'hard') chance -= 0.10; 
-    if (agency.difficulty === 'easy') chance += 0.10; 
+
+    if (agency.difficulty === 'hard') chance -= 0.10;
+    if (agency.difficulty === 'easy') chance += 0.10;
     return Utils.clamp(chance, 0.05, 0.95);
   }
 
@@ -390,7 +402,7 @@ window.Models = (function () {
 
     const armor = totalInjuryMod + (hasClumsy ? 0.2 : 0);
     let type, gold = 0, injury = false;
-    
+
     if (Math.random() < chance) {
       const avgMargin = totalStat / monsters.length - quest.difficulty;
       let p = 0.08 + Math.max(0, avgMargin) * 0.015;
@@ -412,7 +424,7 @@ window.Models = (function () {
       if (r < 0.7) type = 'fail';
       else if (r < 0.7 + injuryP) { type = 'injury'; injury = true; }
       else if (r < 0.7 + injuryP + 0.1) {
-        if (monsters.some(m => m.traits[0] === 'неуловимый')) { type = 'injury'; injury = true; } 
+        if (monsters.some(m => m.traits[0] === 'неуловимый')) { type = 'injury'; injury = true; }
         else type = 'lost';
       } else type = 'fail';
     }
@@ -420,7 +432,7 @@ window.Models = (function () {
     const bestIntMonster = monsters.reduce((best, m) => effectiveIntel(m) > effectiveIntel(best) ? m : best, monsters[0]);
     const honest = honestyChance(bestIntMonster, agency);
     const truthful = Utils.chance(honest);
-    
+
     let reportKey;
     if (type === 'overkill') reportKey = 'overkill_' + quest.type;
     else if (type === 'injury') reportKey = 'injury';
@@ -446,7 +458,7 @@ window.Models = (function () {
   function calculateResult(monster, quest, agency) { return calculateGroupResult([monster], quest, agency); }
 
   function applyMissionResult(agency, r) {
-    // Золото копим в dayStats, но не зачисляем в agency.gold (это произойдет в конце дня)
+    // Золото копим в dayStats, но не зачисляем в agency.gold
     agency.dayStats.goldEarned += r.gold;
     agency.quests = agency.quests.filter(q => q.id !== r.questId);
 
@@ -454,10 +466,10 @@ window.Models = (function () {
       agency.stats.questsDone++;
       agency.dayStats.questsDone++;
     }
-    
+
     if (r.type === 'overkill') {
       agency.stats.overkills++;
-      const penalty = agency.difficulty === 'hard' ? 0.06 : (agency.difficulty === 'easy' ? 0.02 : 0.03); 
+      const penalty = agency.difficulty === 'hard' ? 0.06 : (agency.difficulty === 'easy' ? 0.02 : 0.03);
       agency.threat = Utils.clamp(agency.threat + penalty, 0, 1);
     }
 
@@ -470,14 +482,17 @@ window.Models = (function () {
         agency.dayStats.losses++;
       } else {
         m.missions++;
-        
-        // Получение опыта и повышение уровня
+
+        // Получение опыта и повышение уровня (+1 ко всем статам)
         if (r.type === 'success' || r.type === 'overkill') {
             m.xp = (m.xp || 0) + 1;
             if (m.xp >= m.level * 2) {
                 m.level++;
                 m.xp = 0;
-                m.stats[Utils.pick(['str', 'agi', 'int', 'luck'])]++; // Случайный стат +1
+                m.stats.str++;
+                m.stats.agi++;
+                m.stats.int++;
+                m.stats.luck++;
             }
         }
         
