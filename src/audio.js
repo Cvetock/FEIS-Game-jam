@@ -3,6 +3,7 @@ window.Audio = {
   music: {},
   currentMusic: null,
   enabled: true,
+  masterVolume: 1.0,
 
   init() {
     const sfxFiles = {
@@ -14,7 +15,7 @@ window.Audio = {
       success: 'assets/audio/sfx/success.mp3',
       fail: 'assets/audio/sfx/fail.mp3',
       overkill: 'assets/audio/sfx/overkill.mp3',
-      injury: 'assets/audio/sfx/fail.mp3', // Fallback, если нет отдельного звука
+      injury: 'assets/audio/sfx/fail.mp3',
       lost: 'assets/audio/sfx/lost.mp3',
       lie: 'assets/audio/sfx/lie_detected.wav',
       rival: 'assets/audio/sfx/reval_take.mp3',
@@ -32,14 +33,12 @@ window.Audio = {
       defeat: 'assets/audio/music/поражение.mp3'
     };
 
-    // Предзагрузка SFX
     for (let key in sfxFiles) {
       const a = document.createElement('audio');
       a.src = sfxFiles[key];
       this.sfx[key] = a;
     }
 
-    // Предзагрузка Музыки
     for (let key in musicFiles) {
       const a = document.createElement('audio');
       a.src = musicFiles[key];
@@ -48,24 +47,40 @@ window.Audio = {
     }
   },
 
+  toggleVolume() {
+    if (this.masterVolume === 1.0) this.masterVolume = 0.5;
+    else if (this.masterVolume === 0.5) this.masterVolume = 0.0;
+    else this.masterVolume = 1.0;
+
+    if (this.currentMusic) {
+      this.currentMusic.volume = 0.4 * this.masterVolume;
+    }
+  },
+
   playSfx(type) {
-    if (!this.enabled || !this.sfx[type]) return;
-    const sound = this.sfx[type].cloneNode(); // Позволяет накладывать звуки друг на друга
-    sound.volume = 0.7;
-    sound.play().catch(e => console.warn('Не удалось проиграть SFX', e));
+    if (!this.enabled || this.masterVolume === 0 || !this.sfx[type]) return;
+    const sound = this.sfx[type].cloneNode();
+    sound.volume = 0.7 * this.masterVolume;
+    sound.play().catch(e => {});
   },
 
   playMusic(type) {
     if (!this.enabled || !this.music[type]) return;
-    if (this.currentMusic === this.music[type]) return; 
-    
+    if (this.currentMusic === this.music[type]) {
+       this.currentMusic.volume = 0.4 * this.masterVolume;
+       return;
+    }
+
     if (this.currentMusic) {
       this.currentMusic.pause();
       this.currentMusic.currentTime = 0;
     }
-    
+
     this.currentMusic = this.music[type];
-    this.currentMusic.volume = 0.4;
-    this.currentMusic.play().catch(e => console.warn('Браузер заблокировал автовоспроизведение музыки', e));
+    this.currentMusic.volume = 0.4 * this.masterVolume;
+
+    if (this.masterVolume > 0) {
+      this.currentMusic.play().catch(e => {});
+    }
   }
 };

@@ -68,13 +68,13 @@ window.Assets = {
       ['bg_cover',    'assets/art/backgrounds/cover_itchio.svg'],
 
       // Монстры
-      ['mon_goblin',   'assets/art/monsters/goblin.png'],
-      ['mon_orc',      'assets/art/monsters/Orc.png'],
-      ['mon_skeleton', 'assets/art/monsters/Skeleton.png'],
-      ['mon_slime',    'assets/art/monsters/Slime.png'],
-      ['mon_imp',      'assets/art/monsters/Imp.png'],
-      ['mon_troll',    'assets/art/monsters/Troll.png'],
-      ['mon_vampire',  'assets/art/monsters/Vampire.png'],
+      ['mon_goblin',   'assets/art/monsters/гоблин.png'],
+      ['mon_orc',      'assets/art/monsters/орк.png'],
+      ['mon_skeleton', 'assets/art/monsters/скелет.png'],
+      ['mon_slime',    'assets/art/monsters/слизь.png'],
+      ['mon_imp',      'assets/art/monsters/импу.png'],
+      ['mon_troll',    'assets/art/monsters/троль.png'],
+      ['mon_vampire',  'assets/art/monsters/вампир.png'],
 
       // Задания (только 5 типов нарисованы художником)
       ['quest_farm',    'assets/art/missions/farm.png'],

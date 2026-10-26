@@ -91,22 +91,13 @@
   let panelTarget = 0;
   let gameDifficulty = 'normal';
   let showStatsHelp = false;
-
-  // Флаг для звука лжи
   let lieSoundPlayed = false;
 
   function inRect(p, x, y, w, h) { return p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h; }
   function hoverRect(x, y, w, h) { return inRect(Input.mouse, x, y, w, h); }
   function addArea(x, y, w, h, onClick) { hitAreas.push({ x, y, w, h, onClick }); }
   function showToast(msg) { toast.msg = msg; toast.t = 3.6; }
-
-  function pressed(code) {
-    const now = Input.isKeyPressed(code);
-    const was = !!keysPrev[code];
-    keysPrev[code] = now;
-    return now && !was;
-  }
-
+  function pressed(code) { const now = Input.isKeyPressed(code); const was = !!keysPrev[code]; keysPrev[code] = now; return now && !was; }
   function easeInOut(p) { return p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; }
   function panelHeight() { const e = easeInOut(Math.max(0, Math.min(1, panelAnim))); return TOP_FULL - (TOP_FULL - TOP_MINI) * e; }
 
@@ -212,11 +203,10 @@
 
     Renderer.rect(0, 0, W, Math.max(0, topH - 60), 'rgba(15,10,6,0.8)');
 
-    Renderer.text('ДЕНЬ ' + a.day + '/' + a.maxDays + ' · КАЗНА: ' + a.gold + ' зол.', 20, 22, { color: '#e7d7ae', font: 'bold 12px Georgia' });
-    Renderer.text('УГРОЗА: ' + Math.round(a.threat * 100) + '%', W - 150, 22, { color: STAGE_LIGHT[Models.threatStage(a.threat)], font: 'bold 12px Georgia' });
-
-    // Кнопка подсказки теперь под надписями, в левом верхнем углу
-    button(20, 35, 30, 25, '?', () => { showStatsHelp = true; }, { variant: 'ghost', font: 'bold 14px Georgia' });
+    // Угроза теперь под днем
+    Renderer.text('ДЕНЬ ' + a.day + '/' + a.maxDays + ' · КАЗНА: ' + a.gold + ' зол.', 20, 22, { color: '#e7d7ae', font: 'bold 14px Georgia' });
+    Renderer.text('УГРОЗА: ' + Math.round(a.threat * 100) + '%', 20, 45, { color: STAGE_LIGHT[Models.threatStage(a.threat)], font: 'bold 14px Georgia' });
+    button(140, 30, 30, 20, '?', () => { showStatsHelp = true; }, { variant: 'ghost', font: 'bold 12px Georgia' });
 
     const startX = centreX((slotW + gap) * SLOTS - gap);
     const yOffset = topH - 100;
@@ -345,11 +335,12 @@
        Renderer.ink(cand.name + ' [Ур.' + cand.level + ']', x + cardW / 2, y + 130, { align: 'center', font: 'bold 18px Georgia' });
        Renderer.text('[' + cand.speciesLabel + ']', x + cardW / 2, y + 148, { color: T.inkSoft, align: 'center', font: '12px Georgia' });
        Renderer.text('Черта: ' + cand.traits[0], x + cardW / 2, y + 165, { color: '#6b4a18', align: 'center', font: 'italic 12px Georgia' });
+       // Убрали отображение каприза на собеседовании
 
        const stats = [['СИЛА', cand.stats.str], ['ЛОВ', cand.stats.agi], ['ИНТ', cand.stats.int], ['УДА', cand.stats.luck]];
        stats.forEach(function (s, j) {
          const sx = x + 15 + (j % 2) * (cardW / 2 - 15);
-         const sy = y + 195 + Math.floor(j / 2) * 20;
+         const sy = y + 205 + Math.floor(j / 2) * 20;
          Renderer.text(s[0], sx, sy, { color: T.inkSoft, font: '11px system-ui' });
          Renderer.ink(String(s[1]), sx + cardW / 2 - 25, sy, { align: 'right', font: 'bold 16px Georgia' });
        });
@@ -622,8 +613,14 @@
       Renderer.paper(cX, cY, cW, cH, { r: 8, burn: 18 });
     }
 
-    // Кнопка НАЗАД в правом верхнем углу
+    // Кнопки управления (НАЗАД и УВОЛИТЬ)
     button(cX + cW - 160, cY + 40, 120, 45, 'НАЗАД', function () { popupSlot = null; setState('agency'); });
+
+    button(cX + cW - 160, cY + cH - 80, 120, 45, 'УВОЛЬНИТЬ', function () {
+      const res = Models.fireMonster(Game.agency, m.id);
+      if (res.success) { Audio.playSfx('reject'); showToast(res.name + ' уволен.'); popupSlot = null; setState('agency'); }
+      else { Audio.playSfx('reject'); showToast(res.reason); }
+    }, { variant: 'danger', disabled: m.injuryDays > 0, reason: 'Нельзя увольнять раненых' });
 
     const mX = cX + 80;
     const mY = cY + 50;
@@ -683,8 +680,8 @@
     // Оставляем внизу только расходники
     Renderer.ink('РАСХОДНИКИ (СУМКА)', mX, mY + 360, { font: 'bold 18px Georgia' });
 
-    // Ограничиваем рамку сумки, чтобы она не перекрывала кнопку увольнения
-    const sumkaWidth = cW - 360;
+    // Ограничиваем рамку сумки, чтобы она не перекрывала кнопку увольнения (уменьшаем длину)
+    const sumkaWidth = cW - 280;
     Renderer.roundRectStroke(mX, mY + 375, sumkaWidth, 65, 6, 'rgba(140, 100, 50, 0.4)', 2);
     Renderer.roundRect(mX, mY + 375, sumkaWidth, 65, 6, 'rgba(30,20,10,0.1)');
 
@@ -710,15 +707,9 @@
       });
     }
 
-    // Кнопка УВОЛИТЬ в правом нижнем углу
-    button(cX + cW - 180, cY + cH - 85, 140, 45, 'УВОЛЬНИТЬ', function () {
-      const res = Models.fireMonster(Game.agency, m.id);
-      if (res.success) { Audio.playSfx('reject'); showToast(res.name + ' уволен.'); popupSlot = null; setState('agency'); }
-      else { Audio.playSfx('reject'); showToast(res.reason); }
-    }, { variant: 'danger', disabled: m.injuryDays > 0, reason: 'Нельзя увольнять раненых' });
-
+    // ── Отрисовка всплывающего окна (Popup) для выбора экипировки ──
     if (popupSlot) {
-      Renderer.rect(0, 0, W, H, 'rgba(0,0,0,0.6)');
+      Renderer.rect(0, 0, W, H, 'rgba(0,0,0,0.6)'); // Затемняем фон
 
       const popW = 400, popH = 340;
       const popX = centreX(popW), popY = centreY(popH);
@@ -813,6 +804,7 @@
     Renderer.text('Чем закончится — узнаем из докладной.', W/2, barY + 40, { color: '#7a6244', align: 'center', font: '14px Georgia' });
   }
 
+  // ── Экран Отчёта ─────────────────────────────────────────────────────────
   function drawReport() {
     const a = Game.agency;
     const r = a.lastResult;
@@ -830,7 +822,6 @@
       Renderer.paper(cX, cY, cW, cH, { r: 8, burn: 20 });
     }
 
-    // Верхний блок
     Renderer.note(cX + 80, cY + 50, 70, 70, { pin: false });
     Renderer.drawMonsterIcon('mon_' + r.speciesKey, cX + 85, cY + 55, 60);
 
@@ -841,16 +832,13 @@
     Renderer.text('Задание: ' + r.questTitle, cX + 170, cY + 120, { color: '#6b4a18', font: 'italic 15px Georgia' });
     Renderer.text('День ' + a.day, cX + cW - 80, cY + 75, { color: '#7a6244', align: 'right', font: '14px Georgia' });
 
-    // Верхняя линия
     Renderer.rect(cX + 80, cY + 140, cW - 160, 1, 'rgba(90,60,25,0.4)');
 
-    // Воспроизведение звука лжи 1 раз
     if (r.lied && reportTime > 0.1 && !lieSoundPlayed) {
         Audio.playSfx('lie');
         lieSoundPlayed = true;
     }
 
-    // Текст отчёта
     const font = 'italic 26px Georgia';
     const full = '«' + r.reportText + '»';
     const lines = Renderer.wrapText(full, cW - 240, font);
@@ -1224,7 +1212,7 @@
     Renderer.rect(0, 0, W, H, 'rgba(6,4,2,0.74)');
 
     const cW = 800;
-    const cH = 540;
+    const cH = 610; // Увеличили высоту для новой кнопки
     const cX = centreX(cW);
     const cY = centreY(cH);
 
@@ -1259,6 +1247,9 @@
     });
 
     button(centreX(btnW), cY + 390, btnW, btnH, 'КАК ИГРАТЬ', function () { helpFrom = 'menu'; setState('help'); },
+      { variant: 'ghost', font: 'bold 15px Georgia' });
+
+    button(centreX(btnW), cY + 460, btnW, btnH, 'ЗВУК: ' + Math.round(Audio.masterVolume * 100) + '%', function () { Audio.toggleVolume(); },
       { variant: 'ghost', font: 'bold 15px Georgia' });
 
     Renderer.text('Мышь / тап. Esc — пауза, Enter — подтвердить.', W/2, cY + cH - 30, { color: '#7a6244', align: 'center', font: '12px Georgia' });
@@ -1364,7 +1355,7 @@
     Renderer.rect(0, 0, W, H, 'rgba(4,3,1,0.74)');
 
     const cW = 500;
-    const cH = 450;
+    const cH = 530; // Увеличили под кнопку звука
     const cX = centreX(cW);
     const cY = centreY(cH);
 
@@ -1379,6 +1370,9 @@
     button(centreX(320), cY + 220, 320, 65, 'КАК ИГРАТЬ', function () { helpFrom = 'pause'; setState('help'); },
       { variant: 'ghost', font: 'bold 14px Georgia' });
     button(centreX(320), cY + 300, 320, 65, 'В МЕНЮ', function () { saveGame(); setState('menu'); },
+      { variant: 'ghost', font: 'bold 14px Georgia' });
+
+    button(centreX(320), cY + 380, 320, 65, 'ЗВУК: ' + Math.round(Audio.masterVolume * 100) + '%', function () { Audio.toggleVolume(); },
       { variant: 'ghost', font: 'bold 14px Georgia' });
   }
 
@@ -1400,10 +1394,12 @@
 
     lieSoundPlayed = false;
 
-    if (next === 'mission' || next === 'report' || next === 'tender') {
-      // Тут можно добавить переключение на музыку 'экран отчета.mp3' или 'финальный тендер.mp3'
-      // Например: if (next === 'report') Audio.playMusic('report');
-    }
+    if (next === 'menu') Audio.playMusic('main');
+    else if (next === 'report') Audio.playMusic('report');
+    else if (next === 'tender') Audio.playMusic('tender');
+    else if (next === 'victory') Audio.playMusic('victory');
+    else if (next === 'defeat') Audio.playMusic('defeat');
+    else if (next === 'agency' && Game.state !== 'pause' && Game.state !== 'help' && Game.state !== 'monster') Audio.playMusic('main');
   }
 
   function enterState(to) {
@@ -1571,7 +1567,6 @@
     await Assets.load();
     Audio.init();
 
-    // Включаем фоновую музыку, когда игрок хотя бы раз кликнет по экрану
     document.addEventListener('click', () => { Audio.playMusic('main'); }, { once: true });
 
     Game.init('game');
